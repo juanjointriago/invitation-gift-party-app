@@ -80,7 +80,12 @@ export const PartyGiftsPage: React.FC = () => {
 
   const handleConfirm = async () => {
     // Prevenir doble envío
-    if (submittedRef.current || !selectedGift) return;
+    if (submittedRef.current) return;
+
+    if (!selectedGift) {
+      toast.info('Elige un regalo antes de confirmar');
+      return;
+    }
     submittedRef.current = true;
 
     setSubmitting(true);
@@ -144,6 +149,30 @@ export const PartyGiftsPage: React.FC = () => {
               </div>
             ) : gifts.length > 0 ? (
               <>
+                {fullParty?.questions?.length && answers.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-primary/5 border border-primary/30 text-primary p-4 rounded-md"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">Responde las preguntas primero</p>
+                        <p className="text-sm text-text-muted">
+                          Tienes preguntas pendientes. Responde para que el anfitrión conozca tus preferencias.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/party/${p_uuid}/questions?p_uuid=${p_uuid}`)}
+                      >
+                        Responder ahora
+                      </Button>
+                    </div>
+                  </motion.div>
+                ) : null}
+
                 {submitError && (
                   <motion.div
                     initial={{ opacity: 0 }}

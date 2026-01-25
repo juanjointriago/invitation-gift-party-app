@@ -1,3 +1,4 @@
+import React, { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 // Layouts
@@ -9,24 +10,33 @@ import {
   AdminDashboardLayout,
 } from '../components/layout';
 
-// Pages
-import { HomePage } from '../pages/HomePage';
-import { NotFoundPage } from '../pages/NotFoundPage';
-import { LoginPage } from '../pages/auth/login';
-import { RegisterPage } from '../pages/auth/register';
-import { ResetPasswordPage } from '../pages/auth/reset-password';
-import { PartyLandingPage } from '../pages/party/PartyLandingPage';
-import { PartyQuestionsPage } from '../pages/party/PartyQuestionsPage';
-import { PartyHomePage } from '../pages/party/PartyHomePage';
-import { PartyGiftsPage } from '../pages/party/PartyGiftsPage';
-import { HostDashboardPage } from '../pages/host/HostDashboardPage';
-import { PartyDetailPage } from '../pages/host/PartyDetailPage';
-import { PartyEditorPage } from '../pages/host/PartyEditorPage';
-import { CreatePartyPage } from '../pages/host/CreatePartyPage';
-import { PartyResponsesPage } from '../pages/host/PartyResponsesPage';
-import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
-import { ProfilePage } from '../pages/ProfilePage';
 import { ProtectedRoute } from './ProtectedRoute';
+
+// Lazy-loaded pages
+const HomePage = lazy(() => import('../pages/HomePage').then((m) => ({ default: m.HomePage })));
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
+const LoginPage = lazy(() => import('../pages/auth/login').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('../pages/auth/register').then((m) => ({ default: m.RegisterPage })));
+const ResetPasswordPage = lazy(() => import('../pages/auth/reset-password').then((m) => ({ default: m.ResetPasswordPage })));
+const PartyLandingPage = lazy(() => import('../pages/party/PartyLandingPage').then((m) => ({ default: m.PartyLandingPage })));
+const PartyQuestionsPage = lazy(() => import('../pages/party/PartyQuestionsPage').then((m) => ({ default: m.PartyQuestionsPage })));
+const PartyHomePage = lazy(() => import('../pages/party/PartyHomePage').then((m) => ({ default: m.PartyHomePage })));
+const PartyGiftsPage = lazy(() => import('../pages/party/PartyGiftsPage').then((m) => ({ default: m.PartyGiftsPage })));
+const HostDashboardPage = lazy(() => import('../pages/host/HostDashboardPage').then((m) => ({ default: m.HostDashboardPage })));
+const PartyDetailPage = lazy(() => import('../pages/host/PartyDetailPage').then((m) => ({ default: m.PartyDetailPage })));
+const PartyEditorPage = lazy(() => import('../pages/host/PartyEditorPage').then((m) => ({ default: m.PartyEditorPage })));
+const CreatePartyPage = lazy(() => import('../pages/host/CreatePartyPage').then((m) => ({ default: m.CreatePartyPage })));
+const PartyResponsesPage = lazy(() => import('../pages/host/PartyResponsesPage').then((m) => ({ default: m.PartyResponsesPage })));
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
+const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+
+const fallback = (
+  <div className="py-10 text-center text-sm text-text-muted">Cargando…</div>
+);
+
+const withSuspense = (element: React.ReactNode) => (
+  <Suspense fallback={fallback}>{element}</Suspense>
+);
 
 /**
  * Rutas de la aplicación
@@ -45,15 +55,15 @@ export const routeConfig: RouteObject[] = [
     children: [
       {
         path: 'login',
-        element: <LoginPage />,
+        element: withSuspense(<LoginPage />),
       },
       {
         path: 'register',
-        element: <RegisterPage />,
+        element: withSuspense(<RegisterPage />),
       },
       {
         path: 'reset-password',
-        element: <ResetPasswordPage />,
+        element: withSuspense(<ResetPasswordPage />),
       },
     ],
   },
@@ -65,19 +75,19 @@ export const routeConfig: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <PartyLandingPage />,
+        element: withSuspense(<PartyLandingPage />),
       },
       {
         path: 'questions',
-        element: <PartyQuestionsPage />,
+        element: withSuspense(<PartyQuestionsPage />),
       },
       {
         path: 'home',
-        element: <PartyHomePage />,
+        element: withSuspense(<PartyHomePage />),
       },
       {
         path: 'gifts',
-        element: <PartyGiftsPage />,
+        element: withSuspense(<PartyGiftsPage />),
       },
     ],
   },
@@ -91,7 +101,7 @@ export const routeConfig: RouteObject[] = [
         index: true,
         element: (
           <ProtectedRoute requiredRoles={['anfitrion']}>
-            <HostDashboardPage />
+            {withSuspense(<HostDashboardPage />)}
           </ProtectedRoute>
         ),
       },
@@ -99,7 +109,7 @@ export const routeConfig: RouteObject[] = [
         path: 'party/:partyUuid',
         element: (
           <ProtectedRoute requiredRoles={['anfitrion']}>
-            <PartyDetailPage />
+            {withSuspense(<PartyDetailPage />)}
           </ProtectedRoute>
         ),
       },
@@ -107,7 +117,7 @@ export const routeConfig: RouteObject[] = [
         path: 'party/:partyUuid/editor',
         element: (
           <ProtectedRoute requiredRoles={['anfitrion']}>
-            <PartyEditorPage />
+            {withSuspense(<PartyEditorPage />)}
           </ProtectedRoute>
         ),
       },
@@ -115,7 +125,7 @@ export const routeConfig: RouteObject[] = [
         path: 'party/:partyUuid/responses',
         element: (
           <ProtectedRoute requiredRoles={['anfitrion']}>
-            <PartyResponsesPage />
+            {withSuspense(<PartyResponsesPage />)}
           </ProtectedRoute>
         ),
       },
@@ -123,7 +133,7 @@ export const routeConfig: RouteObject[] = [
         path: 'create',
         element: (
           <ProtectedRoute requiredRoles={['anfitrion']}>
-            <CreatePartyPage />
+            {withSuspense(<CreatePartyPage />)}
           </ProtectedRoute>
         ),
       },
@@ -139,7 +149,7 @@ export const routeConfig: RouteObject[] = [
         path: 'dashboard',
         element: (
           <ProtectedRoute requiredRoles={['administrator']}>
-            <AdminDashboardPage />
+            {withSuspense(<AdminDashboardPage />)}
           </ProtectedRoute>
         ),
       },
@@ -165,13 +175,13 @@ export const routeConfig: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: withSuspense(<HomePage />),
       },
       {
         path: 'profile',
         element: (
           <ProtectedRoute>
-            <ProfilePage />
+            {withSuspense(<ProfilePage />)}
           </ProtectedRoute>
         ),
       },
@@ -181,6 +191,6 @@ export const routeConfig: RouteObject[] = [
   // 404
   {
     path: '*',
-    element: <NotFoundPage />,
+    element: withSuspense(<NotFoundPage />),
   },
 ];

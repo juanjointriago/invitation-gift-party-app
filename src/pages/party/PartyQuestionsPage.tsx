@@ -16,14 +16,16 @@ export const PartyQuestionsPage: React.FC = () => {
   const p_uuid = searchParams.get('p_uuid') || partyUuid || '';
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { setAnswer } = usePartyQuestionsStore();
+  const { setAnswer, clearAnswers } = usePartyQuestionsStore();
   const { fullParty, loading: partyLoading, error: partyError } = usePartyLoader(p_uuid);
 
   useEffect(() => {
     if (!p_uuid) {
       navigate('/');
     }
-  }, [navigate, p_uuid]);
+    // Limpiar respuestas previas al cambiar de fiesta para evitar fugas de estado
+    clearAnswers();
+  }, [navigate, p_uuid, clearAnswers]);
 
   const questions = fullParty?.questions || [];
 
@@ -55,6 +57,7 @@ export const PartyQuestionsPage: React.FC = () => {
   };
 
   const handleSkip = () => {
+    toast.info('Puedes responder más tarde');
     navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`);
   };
 
