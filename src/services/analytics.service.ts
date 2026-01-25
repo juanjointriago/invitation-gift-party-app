@@ -2,6 +2,9 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../db/initialize';
 import type { Party, PartyAssistanceGift } from '../types/party';
 
+const COLLECTION_PARTIES = import.meta.env.VITE_COLLECTION_PARTIES || 'parties';
+const COLLECTION_PARTY_ASSISTANCE = import.meta.env.VITE_COLLECTION_PARTY_ASSISTANCE || 'partyAssistanceGift';
+
 /**
  * Servicio de analítica para dashboards
  */
@@ -12,12 +15,12 @@ export const AnalyticsService = {
   async getSystemStats() {
     try {
       // Total de fiestas
-      const partiesSnap = await getDocs(collection(db, 'parties'));
+      const partiesSnap = await getDocs(collection(db, COLLECTION_PARTIES));
       const totalParties = partiesSnap.size;
       const publishedParties = partiesSnap.docs.filter((doc) => doc.data().status === 'published').length;
 
       // Total de asistencias
-      const assistancesSnap = await getDocs(collection(db, 'partyAssistances'));
+      const assistancesSnap = await getDocs(collection(db, COLLECTION_PARTY_ASSISTANCE));
       const totalAssistances = assistancesSnap.size;
 
       // Total de preguntas
@@ -56,7 +59,7 @@ export const AnalyticsService = {
     try {
       const partiesSnap = await getDocs(
         query(
-          collection(db, 'parties'),
+          collection(db, COLLECTION_PARTIES),
           where('createdAt', '>=', startDate),
           where('createdAt', '<=', endDate)
         )
@@ -64,7 +67,7 @@ export const AnalyticsService = {
 
       const assistancesSnap = await getDocs(
         query(
-          collection(db, 'partyAssistances'),
+          collection(db, COLLECTION_PARTY_ASSISTANCE),
           where('createdAt', '>=', startDate),
           where('createdAt', '<=', endDate)
         )
@@ -86,7 +89,7 @@ export const AnalyticsService = {
    */
   async getMostPopularGifts(limit_count = 10) {
     try {
-      const assistancesSnap = await getDocs(collection(db, 'partyAssistances'));
+      const assistancesSnap = await getDocs(collection(db, COLLECTION_PARTY_ASSISTANCE));
       
       const giftCounts: Record<string, { name: string; count: number }> = {};
       
@@ -130,7 +133,7 @@ export const AnalyticsService = {
    */
   async getPartiesByStatus() {
     try {
-      const partiesSnap = await getDocs(collection(db, 'parties'));
+      const partiesSnap = await getDocs(collection(db, COLLECTION_PARTIES));
       
       const stats = {
         published: 0,
@@ -157,8 +160,8 @@ export const AnalyticsService = {
    */
   async getResponseRate() {
     try {
-      const partiesSnap = await getDocs(collection(db, 'parties'));
-      const assistancesSnap = await getDocs(collection(db, 'partyAssistances'));
+      const partiesSnap = await getDocs(collection(db, COLLECTION_PARTIES));
+      const assistancesSnap = await getDocs(collection(db, COLLECTION_PARTY_ASSISTANCE));
 
       const totalParties = partiesSnap.size;
       const totalAssistances = assistancesSnap.size;
