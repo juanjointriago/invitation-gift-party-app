@@ -3,8 +3,10 @@ import { Card, CardHeader, CardBody } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select } from '../../components/ui/select';
+import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { PartyService } from '../../services/party.service';
 import { PartyAssistanceService } from '../../services/party-assistance.service';
+import { useNotificationStore } from '../../stores/notification.store';
 import type { Party, PartyAssistanceGift } from '../../types/party';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -20,6 +22,13 @@ export const AdminDashboardPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
   const [partyMetrics, setPartyMetrics] = useState<Record<string, { attendances: number; gifts: number }>>({});
+  const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; type: 'archive' | 'delete'; partyUuid: string; partyTitle: string }>({
+    isOpen: false,
+    type: 'archive',
+    partyUuid: '',
+    partyTitle: '',
+  });
+  const { addNotification } = useNotificationStore();
   const tableRef = useRef<AdminPartiesTableHandle>(null);
 
   useEffect(() => {
@@ -83,25 +92,65 @@ export const AdminDashboardPage: React.FC = () => {
       });
   }, [parties, searchTerm, statusFilter]);
 
-  const handleArchiveParty = async (partyUuid: string) => {
-    if (!confirm('¿Archivar esta fiesta?')) return;
+  const handleArchiveParty = async (partyUuid: string, partyTitle: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'archive',
+      partyUuid,
+      partyTitle,
+    });
+  };
+
+  const handleDeleteParty = async (partyUuid: string, partyTitle: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'delete',
+      partyUuid,
+      partyTitle,
+    });
+  };
+
+  const performArchive = async () => {
     try {
-      await PartyService.archiveParty(partyUuid);
-      setParties((prev) => prev.map((p) => (p.party_uuid === partyUuid ? { ...p, status: 'archived' as const } : p)));
-      toast.success('Fiesta archivada');
+      await PartyService.archiveParty(confirmDialog.partyUuid);
+      setParties((prev) =>
+        prev.map((p) => (p.party_uuid === confirmDialog.partyUuid ? { ...p, status: 'archived' as const } : p))
+      );
+      addNotification({
+        type: 'success',
+        title: 'Fiesta archivada',
+        message: `${confirmDialog.partyTitle} ha sido archivada correctamente`,
+        duration: 5000,
+      });
     } catch (err) {
-      toast.error('Error al archivar');
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudo archivar la fiesta',
+        duration: null,
+      });
+      throw err;
     }
   };
 
-  const handleDeleteParty = async (partyUuid: string) => {
-    if (!confirm('¿Eliminar permanentemente esta fiesta? Esta acción no se puede deshacer.')) return;
+  const performDelete = async () => {
     try {
-      await PartyService.deleteParty(partyUuid);
-      setParties((prev) => prev.filter((p) => p.party_uuid !== partyUuid));
-      toast.success('Fiesta eliminada');
+      await PartyService.deleteParty(confirmDialog.partyUuid);
+      setParties((prev) => prev.filter((p) => p.party_uuid !== confirmDialog.partyUuid));
+      addNotification({
+        type: 'success',
+        title: 'Fiesta eliminada',
+        message: `${confirmDialog.partyTitle} ha sido eliminada permanentemente`,
+        duration: 5000,
+      });
     } catch (err) {
-      toast.error('Error al eliminar');
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudo eliminar la fiesta',
+        duration: null,
+      });
+      throw err;
     }
   };
 
@@ -287,6 +336,22 @@ export const AdminDashboardPage: React.FC = () => {
           </Card>
         </>
       )}
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.type === 'archive' ? 'Archivar fiesta' : 'Eliminar fiesta'}
+        message={
+          confirmDialog.type === 'archive'
+            ? '¿Está seguro que desea archivar esta fiesta?'
+            : '¿Está seguro que desea eliminar esta fiesta permanentemente?'
+        }
+        description={`Fiesta: ${confirmDialog.partyTitle}`}
+        confirmText={confirmDialog.type === 'archive' ? 'Archivar' : 'Eliminar'}
+        cancelText="Cancelar"
+        isDangerous={confirmDialog.type === 'delete'}
+        onConfirm={confirmDialog.type === 'archive' ? performArchive : performDelete}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };
@@ -299,8 +364,8 @@ interface AdminPartiesTableProps {
   pagination: PaginationState;
   onPaginationChange: (updater: PaginationState | ((prev: PaginationState) => PaginationState)) => void;
   partyMetrics: Record<string, { attendances: number; gifts: number }>;
-  onArchive: (uuid: string) => void;
-  onDelete: (uuid: string) => void;
+  onArchive: (uuid: string, title: string) => void;
+  onDelete: (uuid: string, title: string) => void;
 }
 
 export interface AdminPartiesTableHandle {
@@ -382,7 +447,7 @@ const AdminPartiesTable = React.forwardRef<AdminPartiesTableHandle, AdminParties
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => onArchive(row.original.party_uuid)}
+                  onClick={() => onArchive(row.original.party_uuid, row.original.title)}
                   title="Archivar"
                 >
                   <Archive className="w-4 h-4" />
@@ -391,7 +456,7 @@ const AdminPartiesTable = React.forwardRef<AdminPartiesTableHandle, AdminParties
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => onDelete(row.original.party_uuid)}
+                onClick={() => onDelete(row.original.party_uuid, row.original.title)}
                 title="Eliminar"
               >
                 <Trash2 className="w-4 h-4 text-error" />

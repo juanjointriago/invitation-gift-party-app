@@ -50,15 +50,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               rounded-md
               font-base
               text-base
+              text-text
+              bg-background
               transition-all
               duration-200
               focus:outline-none
               focus:ring-2
               focus:ring-primary/50
               focus:border-primary
-              disabled:bg-gray-100
+              disabled:opacity-50
               disabled:cursor-not-allowed
-              disabled:text-text-muted
+              placeholder:text-text-muted
               ${icon ? 'pl-10' : ''}
               ${error ? 'border-error focus:ring-error/50' : ''}
               ${className || ''}

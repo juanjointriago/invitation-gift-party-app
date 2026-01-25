@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,12 +10,40 @@ import { useAuthStore } from '../stores/auth.store';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
+const profileSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'El nombre debe tener mínimo 2 caracteres')
+    .max(100, 'El nombre es demasiado largo')
+    .trim()
+    .refine((val) => val.trim().length >= 2, {
+      message: 'El nombre no puede ser solo espacios',
+    })
+    .refine((val) => /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/.test(val), {
+      message: 'El nombre solo puede contener letras',
+    }),
+  email: z
+    .string()
+    .min(1, 'El correo es requerido')
+    .email('Correo inválido')
+    .trim()
+    .toLowerCase(),
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
+
 export const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [editing, setEditing] = useState(false);
 
-  const { register, handleSubmit, reset } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || '',
       email: user?.email || '',
@@ -40,7 +70,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 py-10">
+    <div className="page-bg py-10">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -71,12 +101,15 @@ export const ProfilePage: React.FC = () => {
                   label="Nombre"
                   placeholder="Tu nombre completo"
                   disabled={!editing}
+                  error={errors.name?.message}
                   {...register('name')}
                 />
                 <Input
                   label="Email"
+                  type="email"
                   placeholder="tu@email.com"
                   disabled={!editing}
+                  error={errors.email?.message}
                   {...register('email')}
                 />
               </CardBody>

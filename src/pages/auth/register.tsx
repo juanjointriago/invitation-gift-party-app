@@ -11,11 +11,48 @@ import type { CreateUserData } from '../../interfaces/users.interface';
 
 const registerSchema = z
   .object({
-    name: z.string().min(2, 'Ingresa tu nombre'),
-    lastName: z.string().min(2, 'Ingresa tu apellido'),
-    email: z.string().email('Correo inválido'),
-    password: z.string().min(6, 'Mínimo 6 caracteres'),
-    confirmPassword: z.string().min(6, 'Mínimo 6 caracteres'),
+    name: z
+      .string()
+      .min(2, 'El nombre debe tener mínimo 2 caracteres')
+      .max(50, 'El nombre es demasiado largo')
+      .trim()
+      .refine((val) => val.trim().length >= 2, {
+        message: 'El nombre no puede ser solo espacios',
+      })
+      .refine((val) => /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/.test(val), {
+        message: 'El nombre solo puede contener letras',
+      }),
+    lastName: z
+      .string()
+      .min(2, 'El apellido debe tener mínimo 2 caracteres')
+      .max(50, 'El apellido es demasiado largo')
+      .trim()
+      .refine((val) => val.trim().length >= 2, {
+        message: 'El apellido no puede ser solo espacios',
+      })
+      .refine((val) => /^[a-záéíóúñA-ZÁÉÍÓÚÑ\s]+$/.test(val), {
+        message: 'El apellido solo puede contener letras',
+      }),
+    email: z
+      .string()
+      .min(1, 'El correo es requerido')
+      .email('Correo inválido')
+      .trim()
+      .toLowerCase()
+      .refine((val) => val.includes('@') && val.includes('.'), {
+        message: 'El correo debe tener un formato válido',
+      }),
+    password: z
+      .string()
+      .min(6, 'La contraseña debe tener mínimo 6 caracteres')
+      .max(100, 'La contraseña es demasiado larga')
+      .refine((val) => val.trim().length >= 6, {
+        message: 'La contraseña no puede ser solo espacios',
+      })
+      .refine((val) => /^(?=.*[a-zA-Z])(?=.*[0-9])/.test(val), {
+        message: 'La contraseña debe contener al menos una letra y un número',
+      }),
+    confirmPassword: z.string().min(1, 'Confirma tu contraseña'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Las contraseñas no coinciden',
@@ -55,8 +92,6 @@ export const RegisterPage: React.FC = () => {
       confirmPassword: data.confirmPassword,
       role: 'guest',
       phone: '',
-      address: '',
-      cc: '',
       city: '',
       country: '',
       isActive: true,

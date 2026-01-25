@@ -9,16 +9,25 @@ import { Card, CardBody, CardFooter } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
+import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { MultiStepForm, type MultiStepFormStep } from '../../components/ui';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { PartyService } from '../../services/party.service';
+import { useNotificationStore } from '../../stores/notification.store';
 import { toast } from 'sonner';
 import type { Party, ThemeConfig } from '../../types/party';
 import { usePartyContextStore } from '../../stores/partyContext.store';
 
 const questionFormSchema = z.object({
   id: z.string().min(1),
-  question: z.string().min(5, 'Mínimo 5 caracteres').max(500),
+  question: z
+    .string()
+    .min(5, 'La pregunta debe tener mínimo 5 caracteres')
+    .max(500, 'La pregunta es demasiado larga (máximo 500 caracteres)')
+    .trim()
+    .refine((val) => val.trim().length >= 5, {
+      message: 'La pregunta no puede ser solo espacios',
+    }),
   type: z.enum(['single-choice', 'multi-choice', 'text']),
   options: z.array(z.string().min(1)).default([]),
   required: z.boolean().default(false),
@@ -27,29 +36,130 @@ const questionFormSchema = z.object({
 
 const giftFormSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(3, 'Mínimo 3 caracteres').max(100),
-  description: z.string().max(500).optional(),
-  category: z.string().optional(),
-  maxQuantity: z.number().int().min(1, 'Mínimo 1').max(1000, 'Máximo 1000'),
-  remainingQuantity: z.number().int().min(0),
-  imageUrl: z.string().url('URL inválida').optional(),
+  name: z
+    .string()
+    .min(3, 'El nombre del regalo debe tener mínimo 3 caracteres')
+    .max(100, 'El nombre es demasiado largo (máximo 100 caracteres)')
+    .trim()
+    .refine((val) => val.trim().length >= 3, {
+      message: 'El nombre no puede ser solo espacios',
+    }),
+  description: z
+    .string()
+    .max(500, 'La descripción es demasiado larga (máximo 500 caracteres)')
+    .trim()
+    .optional(),
+  category: z.string().trim().optional(),
+  maxQuantity: z.number().int().min(1, 'Mínimo 1 unidad').max(1000, 'Máximo 1000 unidades'),
+  remainingQuantity: z.number().int().min(0, 'No puede ser negativo'),
+  imageUrl: z
+    .string()
+    .trim()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'URL inválida' }
+    )
+    .optional(),
   order: z.number().optional(),
 });
 
 const themeFormSchema = z.object({
-  primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Color inválido').optional(),
-  secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Color inválido').optional(),
-  accentColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Color inválido').optional(),
-  backgroundColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Color inválido').optional(),
-  coverImageUrl: z.string().url('URL inválida').optional(),
-  loginBannerUrl: z.string().url('URL inválida').optional(),
-  homeGalleryImages: z.array(z.string().url('URL inválida')).optional(),
-  giftCategoryIcons: z.record(z.string(), z.string().url('URL inválida')).optional(),
+  primaryColor: z
+    .string()
+    .trim()
+    .regex(/^#[0-9A-F]{6}$/i, 'Color hexadecimal inválido (ejemplo: #FF5733)')
+    .optional(),
+  secondaryColor: z
+    .string()
+    .trim()
+    .regex(/^#[0-9A-F]{6}$/i, 'Color hexadecimal inválido (ejemplo: #FF5733)')
+    .optional(),
+  accentColor: z
+    .string()
+    .trim()
+    .regex(/^#[0-9A-F]{6}$/i, 'Color hexadecimal inválido (ejemplo: #FF5733)')
+    .optional(),
+  backgroundColor: z
+    .string()
+    .trim()
+    .regex(/^#[0-9A-F]{6}$/i, 'Color hexadecimal inválido (ejemplo: #FF5733)')
+    .optional(),
+  coverImageUrl: z
+    .string()
+    .trim()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'URL inválida' }
+    )
+    .optional(),
+  loginBannerUrl: z
+    .string()
+    .trim()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: 'URL inválida' }
+    )
+    .optional(),
+  homeGalleryImages: z
+    .array(
+      z.string().refine(
+        (val) => {
+          try {
+            new URL(val);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        { message: 'URL inválida' }
+      )
+    )
+    .optional(),
+  giftCategoryIcons: z
+    .record(
+      z.string(),
+      z.string().refine(
+        (val) => {
+          try {
+            new URL(val);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        { message: 'URL inválida' }
+      )
+    )
+    .optional(),
   customTexts: z
     .object({
-      welcomeTitle: z.string().max(200).optional(),
-      welcomeSubtitle: z.string().max(500).optional(),
-      extraInfo: z.string().max(1000).optional(),
+      welcomeTitle: z.string().max(200, 'Máximo 200 caracteres').trim().optional(),
+      welcomeSubtitle: z.string().max(500, 'Máximo 500 caracteres').trim().optional(),
+      extraInfo: z.string().max(1000, 'Máximo 1000 caracteres').trim().optional(),
     })
     .optional(),
 });
@@ -61,10 +171,28 @@ const dateStringSchema = z
 
 const partyFormSchema = z
   .object({
-    title: z.string().min(3, 'Mínimo 3 caracteres').max(100),
-    description: z.string().max(1000, 'Máximo 1000 caracteres').optional(),
+    title: z
+      .string()
+      .min(3, 'El título debe tener mínimo 3 caracteres')
+      .max(100, 'El título es demasiado largo (máximo 100 caracteres)')
+      .trim()
+      .refine((val) => val.trim().length >= 3, {
+        message: 'El título no puede ser solo espacios',
+      }),
+    description: z
+      .string()
+      .max(1000, 'La descripción es demasiado larga (máximo 1000 caracteres)')
+      .trim()
+      .optional(),
     date: dateStringSchema,
-    location: z.string().min(3, 'Mínimo 3 caracteres').max(200),
+    location: z
+      .string()
+      .min(3, 'La ubicación debe tener mínimo 3 caracteres')
+      .max(200, 'La ubicación es demasiado larga (máximo 200 caracteres)')
+      .trim()
+      .refine((val) => val.trim().length >= 3, {
+        message: 'La ubicación no puede ser solo espacios',
+      }),
     status: z.enum(['draft', 'published', 'archived']),
     questions: z.array(questionFormSchema).max(20, 'Máximo 20 preguntas'),
     giftList: z.array(giftFormSchema).max(50, 'Máximo 50 regalos'),
@@ -76,7 +204,7 @@ const partyFormSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['giftList', idx, 'remainingQuantity'],
-          message: 'No puede ser mayor que el máximo',
+          message: 'La cantidad restante no puede ser mayor que el máximo',
         });
       }
     });
@@ -163,8 +291,20 @@ export const PartyEditorPage: React.FC = () => {
   });
 
   const { applyPartyTheme } = usePartyContextStore();
+  const { addNotification } = useNotificationStore();
   const originalThemeRef = useRef<ThemeConfig | undefined>(undefined);
   const [livePreview, setLivePreview] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    type: 'remove-question' | 'remove-gift';
+    index: number;
+    item: string;
+  }>({
+    isOpen: false,
+    type: 'remove-question',
+    index: -1,
+    item: '',
+  });
   const themePreview = watch('themeConfig') || {};
 
   const {
@@ -340,7 +480,14 @@ export const PartyEditorPage: React.FC = () => {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeQuestion(idx)}
+                      onClick={() => {
+                        setConfirmDialog({
+                          isOpen: true,
+                          type: 'remove-question',
+                          index: idx,
+                          item: (watch(`questions.${idx}.question`) as string) || `Pregunta ${idx + 1}`,
+                        });
+                      }}
                     >
                       Eliminar
                     </Button>
@@ -440,7 +587,14 @@ export const PartyEditorPage: React.FC = () => {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeGift(idx)}
+                      onClick={() => {
+                        setConfirmDialog({
+                          isOpen: true,
+                          type: 'remove-gift',
+                          index: idx,
+                          item: (watch(`giftList.${idx}.name`) as string) || `Regalo ${idx + 1}`,
+                        });
+                      }}
                     >
                       Eliminar
                     </Button>
@@ -644,7 +798,7 @@ export const PartyEditorPage: React.FC = () => {
         ),
       },
     ],
-    [appendGift, appendQuestion, control, errors, giftsFields.length, livePreview, questionsFields.length, register, removeGift, removeQuestion, setValue, themePreview, watch]
+    [appendGift, appendQuestion, control, errors, giftsFields.length, livePreview, questionsFields.length, register, setValue, themePreview, watch]
   );
 
   const submitForm = handleSubmit(onSubmit);
@@ -697,6 +851,37 @@ export const PartyEditorPage: React.FC = () => {
           </Button>
         </CardFooter>
       </form>
+
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.type === 'remove-question' ? 'Eliminar pregunta' : 'Eliminar regalo'}
+        message={`¿Está seguro que desea eliminar "${confirmDialog.item}"?`}
+        description="Esta acción no se puede deshacer"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        isDangerous={true}
+        onConfirm={async () => {
+          if (confirmDialog.type === 'remove-question') {
+            removeQuestion(confirmDialog.index);
+            addNotification({
+              type: 'success',
+              title: 'Pregunta eliminada',
+              message: 'La pregunta ha sido removida correctamente',
+              duration: 3000,
+            });
+          } else {
+            removeGift(confirmDialog.index);
+            addNotification({
+              type: 'success',
+              title: 'Regalo eliminado',
+              message: 'El regalo ha sido removido correctamente',
+              duration: 3000,
+            });
+          }
+          setConfirmDialog({ ...confirmDialog, isOpen: false });
+        }}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     </div>
   );
 };

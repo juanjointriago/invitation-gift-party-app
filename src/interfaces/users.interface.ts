@@ -7,13 +7,13 @@ export interface IUser extends BaseEntity {
   password?: string;
   confirmPassword?: string;
   name: string;
-  cc: string;
+  // cc: string;
   lastName: string;
   phone: string;
   role: Role;
   avatar?: string;
   photoURL?: string;
-  address: string;
+  // address: string;
   birthDate?: number;
   city: string;
   country: string;

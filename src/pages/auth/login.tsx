@@ -9,8 +9,19 @@ import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 
 const loginSchema = z.object({
-  email: z.string().email('Correo inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  email: z
+    .string()
+    .min(1, 'El correo es requerido')
+    .email('Correo inválido')
+    .trim()
+    .toLowerCase(),
+  password: z
+    .string()
+    .min(6, 'La contraseña debe tener mínimo 6 caracteres')
+    .max(100, 'La contraseña es demasiado larga')
+    .refine((val) => val.trim().length >= 6, {
+      message: 'La contraseña no puede ser solo espacios',
+    }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;

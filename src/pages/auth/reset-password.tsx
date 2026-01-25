@@ -8,7 +8,15 @@ import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 
 const resetSchema = z.object({
-  email: z.string().email('Correo inválido'),
+  email: z
+    .string()
+    .min(1, 'El correo es requerido')
+    .email('Correo inválido')
+    .trim()
+    .toLowerCase()
+    .refine((val) => val.includes('@') && val.includes('.'), {
+      message: 'El correo debe tener un formato válido',
+    }),
 });
 
 type ResetFormValues = z.infer<typeof resetSchema>;

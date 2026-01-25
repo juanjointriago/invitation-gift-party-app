@@ -3,6 +3,8 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuthStore } from './stores/auth.store';
 import { routeConfig } from './routes/routes.config';
+import { NotificationCenter } from './components/NotificationCenter';
+import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 
 // Crear el router
 const router = createBrowserRouter(routeConfig);
@@ -36,6 +38,8 @@ function App() {
     <>
       <RouterProvider router={router} />
       <Toaster position="top-right" theme="system" />
+      <NotificationCenter />
+      <SyncStatusIndicator />
     </>
   );
 }

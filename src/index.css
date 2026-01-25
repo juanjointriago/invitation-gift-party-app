@@ -61,14 +61,32 @@
   --transition-slow: 300ms ease-in-out;
 }
 
-/* Dark mode (opcional, para futuro) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-text: #f5f5f5;
-    --color-text-muted: #a0a0a0;
-    --color-border: #404040;
-    --color-border-light: #303030;
-  }
+/* ============================================
+   MODO OSCURO
+   ============================================ */
+
+.dark {
+  /* Colores de texto en modo oscuro */
+  --color-text: #f5f5f5;
+  --color-text-muted: #a0a0a0;
+  
+  /* Colores de fondo en modo oscuro */
+  --color-background: #1a1a1a;
+  
+  /* Bordes en modo oscuro */
+  --color-border: #404040;
+  --color-border-light: #303030;
+  
+  /* Ajustar primary/secondary/accent para mejor contraste */
+  --color-primary: #4a9eff;
+  --color-secondary: #bfe3ff;
+  --color-accent: #ff8833;
+  
+  /* Sombras más sutiles en dark mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
 /* ============================================
@@ -126,7 +144,8 @@ html {
 
   /* Tarjetas */
   .card-base {
-    @apply bg-white rounded-lg shadow-md border p-6;
+    @apply rounded-lg shadow-md border p-6;
+    background-color: var(--color-background);
     border-color: var(--color-border);
   }
 
@@ -162,6 +181,12 @@ html {
   /* Skeleton loader */
   .skeleton {
     @apply bg-gray-200 rounded-md animate-pulse;
+  }
+
+  /* Fondo de página adaptable a tema */
+  .page-bg {
+    background: linear-gradient(135deg, var(--color-primary) / 0.05, var(--color-accent) / 0.05);
+    min-height: 100vh;
   }
 }
 

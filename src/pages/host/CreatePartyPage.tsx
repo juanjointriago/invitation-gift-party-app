@@ -13,10 +13,31 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 const partyCreationSchema = z.object({
-  title: z.string().min(3, 'Mínimo 3 caracteres'),
-  description: z.string().min(10, 'Mínimo 10 caracteres'),
+  title: z
+    .string()
+    .min(3, 'El título debe tener mínimo 3 caracteres')
+    .max(100, 'El título es demasiado largo (máximo 100 caracteres)')
+    .trim()
+    .refine((val) => val.trim().length >= 3, {
+      message: 'El título no puede ser solo espacios',
+    }),
+  description: z
+    .string()
+    .min(10, 'La descripción debe tener mínimo 10 caracteres')
+    .max(1000, 'La descripción es demasiado larga (máximo 1000 caracteres)')
+    .trim()
+    .refine((val) => val.trim().length >= 10, {
+      message: 'La descripción no puede ser solo espacios',
+    }),
   date: z.number(),
-  location: z.string().min(3, 'Mínimo 3 caracteres'),
+  location: z
+    .string()
+    .min(3, 'La ubicación debe tener mínimo 3 caracteres')
+    .max(200, 'La ubicación es demasiado larga (máximo 200 caracteres)')
+    .trim()
+    .refine((val) => val.trim().length >= 3, {
+      message: 'La ubicación no puede ser solo espacios',
+    }),
 });
 
 type PartyCreationFormValues = z.infer<typeof partyCreationSchema>;
@@ -72,7 +93,7 @@ export const CreatePartyPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 py-10">
+    <div className="page-bg py-10">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
