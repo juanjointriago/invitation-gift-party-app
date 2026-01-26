@@ -9,6 +9,23 @@ const COLLECTION_PARTIES = import.meta.env.VITE_COLLECTION_PARTIES || 'parties';
  */
 export class PartyService {
   /**
+   * Helper: Limpia valores undefined de un objeto para Firestore
+   * Firestore no acepta undefined, solo null
+   */
+  private static cleanUndefined<T extends Record<string, any>>(obj: T): any {
+    const cleaned: any = { ...obj };
+    Object.keys(cleaned).forEach((key) => {
+      if (cleaned[key] === undefined) {
+        delete cleaned[key];
+      } else if (cleaned[key] !== null && typeof cleaned[key] === 'object' && !Array.isArray(cleaned[key])) {
+        // Recursivamente limpiar objetos anidados
+        cleaned[key] = this.cleanUndefined(cleaned[key]);
+      }
+    });
+    return cleaned;
+  }
+
+  /**
    * Obtener una fiesta por UUID
    */
   static async getPartyByUuid(partyUuid: string): Promise<Party | null> {
@@ -81,7 +98,10 @@ export class PartyService {
         updatedAt: now,
       };
 
-      await setItem(COLLECTION_PARTIES, newParty);
+      // Limpiar valores undefined antes de guardar
+      const cleanedParty = this.cleanUndefined(newParty);
+
+      await setItem(COLLECTION_PARTIES, cleanedParty);
       console.debug('Party created:', partyUuid);
       return newParty;
     } catch (error) {
@@ -95,10 +115,15 @@ export class PartyService {
    */
   static async updateParty(partyUuid: string, updates: Partial<Party>): Promise<void> {
     try {
-      await updateItem(COLLECTION_PARTIES, {
-        id: partyUuid,
+      // Limpiar valores undefined antes de enviar a Firestore
+      const cleanedUpdates = this.cleanUndefined({
         ...updates,
         updatedAt: Date.now(),
+      });
+
+      await updateItem(COLLECTION_PARTIES, {
+        id: partyUuid,
+        ...cleanedUpdates,
       });
       console.debug('Party updated:', partyUuid);
     } catch (error) {
