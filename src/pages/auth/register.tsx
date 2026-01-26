@@ -85,6 +85,7 @@ export const RegisterPage: React.FC = () => {
   });
 
   const onSubmit = async (data: RegisterFormValues) => {
+    console.debug('[REGISTER] Iniciando registro con:', { email: data.email, name: data.name });
     clearError();
     const payload: CreateUserData = {
       name: data.name,
@@ -100,9 +101,12 @@ export const RegisterPage: React.FC = () => {
     };
 
     try {
+      console.debug('[REGISTER] Llamando a registerUser...');
       const result = await registerUser(payload);
+      console.debug('[REGISTER] Resultado:', { isAuthenticated: result.isAuthenticated, message: result.message });
       
       if (result.isAuthenticated) {
+        console.debug('[REGISTER] Registro exitoso, mostrando notificación...');
         addNotification({
           type: 'success',
           message: '¡Cuenta creada exitosamente!',
@@ -111,6 +115,7 @@ export const RegisterPage: React.FC = () => {
         
         // Pequeño delay para mostrar la notificación antes de navegar
         setTimeout(() => {
+          console.debug('[REGISTER] Navegando...');
           if (p_uuid) {
             navigate(`/party/${p_uuid}`);
           } else {
@@ -118,6 +123,7 @@ export const RegisterPage: React.FC = () => {
           }
         }, 500);
       } else {
+        console.warn('[REGISTER] Registro fallido:', result.message);
         addNotification({
           type: 'error',
           message: 'Error al crear cuenta',
@@ -125,6 +131,7 @@ export const RegisterPage: React.FC = () => {
         });
       }
     } catch (err) {
+      console.error('[REGISTER] Error en catch:', err);
       addNotification({
         type: 'error',
         message: 'Error al crear cuenta',

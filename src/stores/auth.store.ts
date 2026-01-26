@@ -67,13 +67,17 @@ const createAuthStore: StateCreator<AuthState> = (set) => {
 
     register: createAsyncAction(
       async (userData: CreateUserData): Promise<RegisterResponse> => {
+        console.debug('[STORE] Iniciando registro con:', { email: userData.email, name: userData.name });
         const result: RegisterResponse = await AuthService.signUp(userData);
+        console.debug('[STORE] Resultado de signUp:', { isAuthenticated: result.isAuthenticated, message: result.message });
         
         // Actualizar estado con el usuario retornado
         if (result.isAuthenticated && result.user) {
+          console.debug('[STORE] Actualizando estado con usuario:', { email: result.user.email, id: result.user.id });
           updateAuthState(result.user, true);
-          console.debug('User registered and authenticated successfully', result.user.email);
+          console.debug('[STORE] Usuario registrado y autenticado exitosamente');
         } else {
+          console.warn('[STORE] Registro fallido:', result.message);
           updateAuthState(null, false);
           // Lanzar error para que el componente pueda manejarlo
           throw new StoreError(result.message || 'Error en el registro');

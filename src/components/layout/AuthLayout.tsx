@@ -7,7 +7,7 @@ import { Outlet } from 'react-router-dom';
  */
 export const AuthLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 p-4 pb-24 sm:pb-8">
       {/* Logo/Brand */}
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-bold text-primary mb-2">🎉 PartyGifts</h1>
@@ -15,12 +15,12 @@ export const AuthLayout: React.FC = () => {
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md flex-shrink-0">
         <Outlet />
       </div>
 
       {/* Footer */}
-      <footer className="absolute bottom-4 text-center text-text-muted text-sm">
+      <footer className="mt-8 sm:mt-12 text-center text-text-muted text-xs sm:text-sm px-4">
         <p>&copy; 2026 PartyGifts. Todos los derechos reservados.</p>
       </footer>
     </div>

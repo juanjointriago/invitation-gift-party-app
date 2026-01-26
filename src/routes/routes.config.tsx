@@ -28,6 +28,7 @@ const PartyEditorPage = lazy(() => import('../pages/host/PartyEditorPage').then(
 const CreatePartyPage = lazy(() => import('../pages/host/CreatePartyPage').then((m) => ({ default: m.CreatePartyPage })));
 const PartyResponsesPage = lazy(() => import('../pages/host/PartyResponsesPage').then((m) => ({ default: m.PartyResponsesPage })));
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
+const AdminPartiesPage = lazy(() => import('../pages/admin/AdminPartiesPage').then((m) => ({ default: m.AdminPartiesPage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 
 const fallback = (
@@ -155,7 +156,11 @@ export const routeConfig: RouteObject[] = [
       },
       {
         path: 'parties',
-        // element: <AdminPartiesPage />,
+        element: (
+          <ProtectedRoute requiredRoles={['administrator']}>
+            {withSuspense(<AdminPartiesPage />)}
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'users',

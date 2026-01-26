@@ -65,17 +65,19 @@ export class AuthService {
       city,
       country,
     } = signUpUser;
-    console.debug("SignUp User Data:", { email, password });
+    console.debug("[AUTH] SignUp iniciado con:", { email, name, role });
     const auth = getAuth();
     try {
+      console.debug("[AUTH] Creando usuario en Firebase...");
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password!
       );
+      console.debug("[AUTH] Usuario creado en Firebase:", { uid: userCredential.user.uid });
+      
       if (userCredential) {
         const { photoURL, uid } = userCredential.user;
-        console.debug({userCredential});
         const dataUser:IUser = {
           id: uid,
           name,
@@ -91,18 +93,24 @@ export class AuthService {
           updatedAt: Date.now(),
           lastLogin: Date.now(),
         };
+        
+        console.debug("[AUTH] Actualizando perfil...");
         await updateProfile(userCredential.user, { displayName: name });
-        console.log('colección de usuarios 😎 ', COLLECTION_USERS);
+        
+        console.debug("[AUTH] Guardando en Firestore, colección:", COLLECTION_USERS);
         await setItem(COLLECTION_USERS, dataUser);
-        // No hacer signOut para mantener la sesión activa
+        
+        console.debug("[AUTH] Usuario registrado exitosamente:", { email, uid });
         return { isAuthenticated: true, message: '¡Cuenta creada exitosamente!', user: dataUser };
       }
+      console.warn("[AUTH] No se obtuvo credencial");
       return { isAuthenticated: false, message: 'No se pudo registrar el usuario' };
     } catch (error: any) {
-      console.warn('Error al registrar el usuario',{error})
-      // signOut en caso de error
+      console.error('[AUTH] Error al registrar usuario:', error);
+      console.error('[AUTH] Error code:', error.code);
+      console.error('[AUTH] Error message:', error.message);
       await signOut(auth).catch(() => null);
-      return { isAuthenticated: false, message: `Error al registrar usuario: ${error.message}` };
+      return { isAuthenticated: false, message: `Error: ${error.message}` };
     }
   };
   /**
