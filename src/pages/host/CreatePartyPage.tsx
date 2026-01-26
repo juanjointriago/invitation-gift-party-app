@@ -29,7 +29,7 @@ const partyCreationSchema = z.object({
     .refine((val) => val.trim().length >= 10, {
       message: 'La descripción no puede ser solo espacios',
     }),
-  date: z.number(),
+  date: z.string().min(1, 'La fecha es requerida'),
   location: z
     .string()
     .min(3, 'La ubicación debe tener mínimo 3 caracteres')
@@ -57,7 +57,7 @@ export const CreatePartyPage: React.FC = () => {
     defaultValues: {
       title: '',
       description: '',
-      date: Date.now() + 7 * 24 * 60 * 60 * 1000, // 1 semana desde ahora
+      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16), // Formato datetime-local
       location: '',
     },
   });
@@ -70,11 +70,14 @@ export const CreatePartyPage: React.FC = () => {
 
     setSubmitting(true);
     try {
+      // Convertir fecha string a timestamp
+      const dateTimestamp = new Date(data.date).getTime();
+      
       const newParty = await PartyService.createParty({
         host_user_id: user.id,
         title: data.title,
         description: data.description,
-        date: data.date,
+        date: dateTimestamp,
         location: data.location,
         questions: [],
         giftList: [],
@@ -86,6 +89,7 @@ export const CreatePartyPage: React.FC = () => {
       reset();
       navigate(`/host/party/${newParty.party_uuid}/editor?p_uuid=${newParty.party_uuid}`);
     } catch (err) {
+      console.error('Error creating party:', err);
       toast.error('Error al crear la fiesta. Intenta de nuevo.');
     } finally {
       setSubmitting(false);
@@ -128,7 +132,7 @@ export const CreatePartyPage: React.FC = () => {
               <Input
                 label="Fecha y hora"
                 type="datetime-local"
-                {...register('date', { valueAsNumber: true })}
+                {...register('date')}
                 error={errors.date?.message}
               />
 
