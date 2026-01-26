@@ -83,10 +83,16 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
 
               {/* Actions */}
               <div className={`p-6 flex items-center justify-end gap-3 ${isDarkMode ? 'bg-surface-dark' : 'bg-background'}`}>
-                <Button variant="outline" onClick={onCancel} disabled={isProcessing || isLoading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={isProcessing || isLoading}
+                >
                   {cancelText}
                 </Button>
                 <Button
+                  type="button"
                   variant={isDangerous ? 'danger' : 'primary'}
                   onClick={handleConfirm}
                   disabled={isProcessing || isLoading}

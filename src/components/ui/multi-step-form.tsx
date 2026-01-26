@@ -189,6 +189,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
       {/* Navigation Buttons */}
       <div className="flex items-center justify-between gap-4 mt-8">
         <Button
+          type="button"
           variant="outline"
           size="md"
           onClick={goPrevious}
@@ -200,6 +201,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
 
         {allowSkip && !isLastStep && (
           <Button
+            type="button"
             variant="ghost"
             size="md"
             onClick={goNext}
@@ -210,6 +212,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
         )}
 
         <Button
+          type="button"
           variant="primary"
           size="md"
           onClick={isLastStep ? handleSubmit : goNext}

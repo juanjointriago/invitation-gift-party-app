@@ -319,6 +319,48 @@ export const PartyEditorPage: React.FC = () => {
     remove: removeGift,
   } = useFieldArray({ control, name: 'giftList' });
 
+  const paletteOptions = useMemo(
+    () => [
+      {
+        name: 'Fiesta coral',
+        colors: { primaryColor: '#F97316', secondaryColor: '#FDE68A', accentColor: '#EC4899', backgroundColor: '#FFF7ED' },
+      },
+      {
+        name: 'Noches violeta',
+        colors: { primaryColor: '#7C3AED', secondaryColor: '#A78BFA', accentColor: '#22D3EE', backgroundColor: '#F8FAFC' },
+      },
+      {
+        name: 'Verde brisa',
+        colors: { primaryColor: '#22C55E', secondaryColor: '#BBF7D0', accentColor: '#0EA5E9', backgroundColor: '#ECFEFF' },
+      },
+      {
+        name: 'Noche dorada',
+        colors: { primaryColor: '#D97706', secondaryColor: '#FBBF24', accentColor: '#F59E0B', backgroundColor: '#FFF8E1' },
+      },
+      {
+        name: 'Cielo ártico',
+        colors: { primaryColor: '#0EA5E9', secondaryColor: '#BAE6FD', accentColor: '#6366F1', backgroundColor: '#F0F9FF' },
+      },
+    ],
+    []
+  );
+
+  const [selectedPalette, setSelectedPalette] = useState<string | null>(null);
+
+  useEffect(() => {
+    const match = paletteOptions.find((palette) => {
+      const colors = palette.colors;
+      return (
+        colors.primaryColor === themePreview.primaryColor &&
+        colors.secondaryColor === themePreview.secondaryColor &&
+        colors.accentColor === themePreview.accentColor &&
+        colors.backgroundColor === themePreview.backgroundColor
+      );
+    });
+
+    setSelectedPalette(match ? match.name : null);
+  }, [paletteOptions, themePreview]);
+
   useEffect(() => {
     if (fullParty) {
       reset({
@@ -524,14 +566,18 @@ export const PartyEditorPage: React.FC = () => {
                         label="Opciones (separadas por coma)"
                         placeholder="Ej: Sí,No,Quizá"
                         value={(field.value || []).join(', ')}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value
-                              .split(',')
-                              .map((opt) => opt.trim())
-                              .filter(Boolean)
-                          )
-                        }
+                        onChange={(e) => {
+                          const rawValue = e.target.value;
+                          const options = rawValue.split(',').map((opt) => opt.trim());
+                          field.onChange(options);
+                        }}
+                        onBlur={(e) => {
+                          const cleanedOptions = e.target.value
+                            .split(',')
+                            .map((opt) => opt.trim())
+                            .filter(Boolean);
+                          field.onChange(cleanedOptions);
+                        }}
                         disabled={watch(`questions.${idx}.type`) === 'text'}
                         helperText="Solo aplica para opción única o múltiple"
                       />
@@ -670,40 +716,56 @@ export const PartyEditorPage: React.FC = () => {
                 <Input label="Color de fondo" type="color" {...register('themeConfig.backgroundColor')} />
               </div>
 
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-text">Paleta seleccionada: {selectedPalette || 'Personalizada'}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLivePreview(true)}
+                >
+                  Aplicar y previsualizar
+                </Button>
+              </div>
+
               <div className="grid md:grid-cols-3 gap-3">
-                {[
-                  {
-                    name: 'Fiesta coral',
-                    colors: { primaryColor: '#F97316', secondaryColor: '#FDE68A', accentColor: '#EC4899', backgroundColor: '#FFF7ED' },
-                  },
-                  {
-                    name: 'Noches violeta',
-                    colors: { primaryColor: '#7C3AED', secondaryColor: '#A78BFA', accentColor: '#22D3EE', backgroundColor: '#F8FAFC' },
-                  },
-                  {
-                    name: 'Verde brisa',
-                    colors: { primaryColor: '#22C55E', secondaryColor: '#BBF7D0', accentColor: '#0EA5E9', backgroundColor: '#ECFEFF' },
-                  },
-                ].map((palette) => (
-                  <button
-                    key={palette.name}
-                    type="button"
-                    onClick={() => {
-                      setValue('themeConfig.primaryColor', palette.colors.primaryColor);
-                      setValue('themeConfig.secondaryColor', palette.colors.secondaryColor);
-                      setValue('themeConfig.accentColor', palette.colors.accentColor);
-                      setValue('themeConfig.backgroundColor', palette.colors.backgroundColor);
-                    }}
-                    className="rounded-lg border border-border p-3 text-left transition hover:border-primary/60"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      {Object.values(palette.colors).map((c) => (
-                        <span key={`${palette.name}-${c}`} className="h-5 w-5 rounded-full border" style={{ backgroundColor: c }} />
-                      ))}
-                    </div>
-                    <p className="text-sm font-semibold text-text">{palette.name}</p>
-                  </button>
-                ))}
+                {paletteOptions.map((palette) => {
+                  const isActive = selectedPalette === palette.name;
+
+                  return (
+                    <button
+                      key={palette.name}
+                      type="button"
+                      onClick={() => {
+                        setValue('themeConfig.primaryColor', palette.colors.primaryColor);
+                        setValue('themeConfig.secondaryColor', palette.colors.secondaryColor);
+                        setValue('themeConfig.accentColor', palette.colors.accentColor);
+                        setValue('themeConfig.backgroundColor', palette.colors.backgroundColor);
+                        setSelectedPalette(palette.name);
+                        setLivePreview(true);
+                      }}
+                      className={`rounded-lg border p-3 text-left transition hover:border-primary/60 ${isActive ? 'border-primary shadow-md' : 'border-border'}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        {Object.entries(palette.colors).map(([key, color]) => (
+                          <div key={`${palette.name}-${key}`} className="flex flex-col items-center gap-1">
+                            <span
+                              className="h-5 w-5 rounded-full border"
+                              style={{ backgroundColor: color }}
+                              title={`${key}: ${color}`}
+                            />
+                            <span className="text-[10px] text-text-muted">{color}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-sm font-semibold text-text flex items-center gap-2">
+                        {palette.name}
+                        {isActive && <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white">Seleccionada</span>}
+                      </p>
+                      <p className="text-xs text-text-muted mt-1">Click para aplicar y luego ajusta los colores arriba si quieres personalizar.</p>
+                    </button>
+                  );
+                })}
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
@@ -798,7 +860,7 @@ export const PartyEditorPage: React.FC = () => {
         ),
       },
     ],
-    [appendGift, appendQuestion, control, errors, giftsFields.length, livePreview, questionsFields.length, register, setValue, themePreview, watch]
+    [appendGift, appendQuestion, control, errors, giftsFields.length, livePreview, paletteOptions, questionsFields.length, register, selectedPalette, setValue, themePreview, watch]
   );
 
   const submitForm = handleSubmit(onSubmit);

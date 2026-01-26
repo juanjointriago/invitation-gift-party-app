@@ -191,6 +191,33 @@ html {
 }
 
 @layer utilities {
+  /* Fondos basados en el tema */
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+
+  .bg-secondary {
+    background-color: var(--color-secondary);
+  }
+
+  .bg-accent {
+    background-color: var(--color-accent);
+  }
+
+  .bg-error {
+    background-color: var(--color-error);
+  }
+
+  /* Bordes basados en el tema */
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+
+  /* Texto de estados */
+  .text-error {
+    color: var(--color-error);
+  }
+
   /* Variables de color como utilities */
   .text-primary {
     color: var(--color-primary);
