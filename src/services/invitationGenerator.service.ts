@@ -40,11 +40,19 @@ export async function generateStaticInvitation(
     }
 
     // 3. Obtener datos del anfitrión (host)
-    const hostRef = doc(db, 'users', partyData.userId);
-    const hostSnap = await getDoc(hostRef);
-    const hostName = hostSnap.exists() 
-      ? (hostSnap.data().displayName || hostSnap.data().email || 'Anfitrión')
-      : 'Anfitrión';
+    let hostName = 'Anfitrión';
+    if (partyData.userId) {
+      try {
+        const hostRef = doc(db, 'users', partyData.userId);
+        const hostSnap = await getDoc(hostRef);
+        if (hostSnap.exists()) {
+          const hostData = hostSnap.data();
+          hostName = hostData.displayName || hostData.email || 'Anfitrión';
+        }
+      } catch (error) {
+        console.warn('⚠️ No se pudo obtener datos del anfitrión:', error);
+      }
+    }
 
     // 4. Obtener regalos de la fiesta
     const giftsQuery = query(collection(db, 'partyAssistanceGift'));
