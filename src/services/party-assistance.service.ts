@@ -48,6 +48,41 @@ export class PartyAssistanceService {
   }
 
   /**
+   * Crear un registro de asistencia inicial cuando el guest se registra
+   * Se usa cuando un nuevo usuario se registra desde el enlace de invitación
+   */
+  static async createInitialAssistance(
+    partyUuid: string,
+    guestUserId: string
+  ): Promise<PartyAssistanceGift> {
+    try {
+      const now = Date.now();
+      const assistanceId = `${partyUuid}_${guestUserId}`;
+
+      const assistance: PartyAssistanceGift = {
+        id: assistanceId,
+        party_uuid: partyUuid,
+        guest_user_id: guestUserId,
+        selectedGiftId: '',
+        selectedGiftNameSnapshot: '',
+        quantity: 0,
+        answersToQuestions: [],
+        attendanceConfirmed: false,
+        createdAt: now,
+        updatedAt: now,
+        isActive: true,
+      };
+
+      await setItem(COLLECTION_PARTY_ASSISTANCE, assistance);
+      console.debug('Initial assistance created:', assistanceId);
+      return assistance;
+    } catch (error) {
+      console.error('Error creating initial assistance:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Crear o actualizar la asistencia de un invitado
    * IMPORTANTE: En producción, esta lógica debería estar en una Cloud Function
    * para garantizar transaccionalidad y evitar race conditions

@@ -6,8 +6,9 @@ import { Card, CardBody } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { SkeletonLoader } from '../../components/ui/skeleton-loader';
 import { usePartyContextStore } from '../../stores/partyContext.store';
+import { useAuthStore } from '../../stores/auth.store';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
-import { Calendar, MapPin, Gift, Sparkles } from 'lucide-react';
+import { Calendar, MapPin, Gift, Sparkles, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const PartyLandingPage: React.FC = () => {
@@ -15,9 +16,11 @@ export const PartyLandingPage: React.FC = () => {
   const { partyUuid } = useParams();
   const [searchParams] = useSearchParams();
   const p_uuid = searchParams.get('p_uuid') || partyUuid || '';
+  const isNewGuest = searchParams.get('new') === 'true';
   
   const setPartyUuid = usePartyContextStore((s) => s.setPartyUuid);
   const setPartyData = usePartyContextStore((s) => s.setPartyData);
+  const user = useAuthStore((s) => s.user);
   const { fullParty, loading, error } = usePartyLoader(p_uuid);
 
   // Guardar en contexto cuando se carga la fiesta
@@ -134,6 +137,20 @@ export const PartyLandingPage: React.FC = () => {
               )}
             </div>
 
+            {/* Success Message for New Guest */}
+            {isNewGuest && user && (
+              <motion.div
+                variants={itemVariants}
+                className="bg-success/10 border border-success/30 rounded-lg p-4 flex items-start gap-3"
+              >
+                <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-success">¡Bienvenido {user.name}!</p>
+                  <p className="text-sm text-success/80">Tu cuenta ha sido creada exitosamente. Ahora puedes confirmar tu asistencia y elegir un regalo.</p>
+                </div>
+              </motion.div>
+            )}
+
             {/* CTA Buttons */}
             <div className="space-y-3 pt-4">
               <motion.div
@@ -142,34 +159,68 @@ export const PartyLandingPage: React.FC = () => {
                 initial="hidden"
                 animate="visible"
               >
-                <motion.div variants={itemVariants} className="flex-1">
-                  <Button
-                    size="lg"
-                    variant="primary"
-                    onClick={() => goToAuth('login')}
-                    disabled={loading}
-                    fullWidth
-                    className="h-12 text-base font-semibold"
-                  >
-                    {loading ? 'Cargando...' : '🎉 Iniciar sesión'}
-                  </Button>
-                </motion.div>
-                <motion.div variants={itemVariants} className="flex-1">
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    onClick={() => goToAuth('register')}
-                    disabled={loading}
-                    fullWidth
-                    className="h-12 text-base font-semibold"
-                  >
-                    {loading ? 'Cargando...' : 'Crear cuenta'}
-                  </Button>
-                </motion.div>
+                {!isNewGuest && (
+                  <>
+                    <motion.div variants={itemVariants} className="flex-1">
+                      <Button
+                        size="lg"
+                        variant="primary"
+                        onClick={() => goToAuth('login')}
+                        disabled={loading}
+                        fullWidth
+                        className="h-12 text-base font-semibold"
+                      >
+                        {loading ? 'Cargando...' : '🎉 Iniciar sesión'}
+                      </Button>
+                    </motion.div>
+                    <motion.div variants={itemVariants} className="flex-1">
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        onClick={() => goToAuth('register')}
+                        disabled={loading}
+                        fullWidth
+                        className="h-12 text-base font-semibold"
+                      >
+                        {loading ? 'Cargando...' : 'Crear cuenta'}
+                      </Button>
+                    </motion.div>
+                  </>
+                )}
+                {isNewGuest && (
+                  <motion.div variants={itemVariants} className="flex-1">
+                    <Button
+                      size="lg"
+                      variant="primary"
+                      onClick={() => navigate(`/party/${p_uuid}/questions`)}
+                      disabled={loading}
+                      fullWidth
+                      className="h-12 text-base font-semibold"
+                    >
+                      {loading ? 'Cargando...' : '📝 Responder Preguntas'}
+                    </Button>
+                  </motion.div>
+                )}
+                {isNewGuest && (
+                  <motion.div variants={itemVariants} className="flex-1">
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      onClick={() => navigate(`/party/${p_uuid}/gifts`)}
+                      disabled={loading}
+                      fullWidth
+                      className="h-12 text-base font-semibold"
+                    >
+                      {loading ? 'Cargando...' : '🎁 Elegir Regalo'}
+                    </Button>
+                  </motion.div>
+                )}
               </motion.div>
-              <p className="text-xs text-text-muted text-center">
-                ¿Ya tienes cuenta? Inicia sesión para continuar
-              </p>
+              {!isNewGuest && (
+                <p className="text-xs text-text-muted text-center">
+                  ¿Ya tienes cuenta? Inicia sesión para continuar
+                </p>
+              )}
             </div>
 
             {/* Party Code */}

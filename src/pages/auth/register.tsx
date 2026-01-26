@@ -8,6 +8,7 @@ import { useNotificationStore } from '../../stores/notification.store';
 import { Card, CardHeader, CardBody, CardFooter } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
+import { PartyAssistanceService } from '../../services/party-assistance.service';
 import type { CreateUserData } from '../../interfaces/users.interface';
 
 const registerSchema = z
@@ -113,11 +114,23 @@ export const RegisterPage: React.FC = () => {
           description: `Bienvenido ${data.name}`,
         });
         
+        // Si hay p_uuid, crear registro de asistencia inicial
+        if (p_uuid && result.user?.id) {
+          try {
+            console.debug('[REGISTER] Creando asistencia inicial para:', { partyUuid: p_uuid, userId: result.user.id });
+            await PartyAssistanceService.createInitialAssistance(p_uuid, result.user.id);
+            console.debug('[REGISTER] Asistencia inicial creada exitosamente');
+          } catch (assistanceError) {
+            console.warn('[REGISTER] Error creando asistencia inicial:', assistanceError);
+            // No lanzar error, solo loguearlo
+          }
+        }
+        
         // Pequeño delay para mostrar la notificación antes de navegar
         setTimeout(() => {
           console.debug('[REGISTER] Navegando...');
           if (p_uuid) {
-            navigate(`/party/${p_uuid}`);
+            navigate(`/party/${p_uuid}?new=true`);
           } else {
             navigate('/');
           }
