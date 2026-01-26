@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===================================
+    // INVITACIONES PÚBLICAS
+    // ===================================
+    // Colección de invitaciones públicas - lectura sin autenticación
+    match /publicInvitations/{invitationId} {
+      allow read: if true;  // Cualquiera puede leer
+      allow write: if request.auth != null;  // Solo usuarios autenticados pueden escribir
+    }
+    
+    // ===================================
+    // FIESTAS (parties)
+    // ===================================
+    match /parties/{partyId} {
+      // Lectura pública (para invitaciones)
+      allow read: if true;
+      
+      // Escritura solo para el propietario o admin
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrator');
+    }
+    
+    // ===================================
+    // USUARIOS (users)
+    // ===================================
+    match /users/{userId} {
+      // Cada usuario puede leer/escribir sus propios datos
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Admins pueden leer todos los usuarios
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'administrator';
+    }
+    
+    // ===================================
+    // REGALOS (partyAssistanceGift)
+    // ===================================
+    match /partyAssistanceGift/{giftId} {
+      // Lectura pública
+      allow read: if true;
+      
+      // Escritura solo autenticados
+      allow write: if request.auth != null;
+    }
+    
+    // ===================================
+    // RESTO DE COLECCIONES
+    // ===================================
+    // Por defecto: requiere autenticación
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

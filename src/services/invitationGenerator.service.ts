@@ -1,10 +1,8 @@
-import { doc, getDoc, collection, getDocs, query } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../db/initialize';
+import { doc, getDoc, collection, getDocs, query, setDoc } from 'firebase/firestore';
+import { db } from '../db/initialize';
 import type { StaticInvitation, GeneratedInvitationResult } from '../types/invitation.types';
 
 const BASE_URL = 'https://purple-party-invitation.web.app';
-const STORAGE_INVITATIONS_PATH = 'invitations';
 
 /**
  * Genera un UUID v4 aleatorio
@@ -79,11 +77,11 @@ export async function generateStaticInvitation(
       categories.push('default');
     }
 
-    // 6. Generar UUID único para la invitación
+    // 8. Generar UUID único para la invitación
     const uuid_invitation = generateUUID();
     const publicUrl = `${BASE_URL}/public-invitation?uuid_invitation=${uuid_invitation}`;
 
-    // 7. Construir objeto StaticInvitation
+    // 9. Construir objeto StaticInvitation
     const invitation: StaticInvitation = {
       uuid_invitation,
       party_uuid,
@@ -118,37 +116,19 @@ export async function generateStaticInvitation(
       version: '1.0',
     };
 
-    // 8. Convertir a JSON string
-    const jsonContent = JSON.stringify(invitation, null, 2);
-
-    // 9. Subir a Firebase Storage
-    const storageRef = ref(storage, `${STORAGE_INVITATIONS_PATH}/${uuid_invitation}.json`);
-    await uploadString(storageRef, jsonContent, 'raw', {
-      contentType: 'application/json',
-      cacheControl: 'public, max-age=300', // Cache de 5 minutos
-    });
-
-    // 10. Obtener URL pública del archivo
-    const storageUrl = await getDownloadURL(storageRef);
+    // 10. Guardar en Firestore (colección pública)
+    const invitationRef = doc(db, 'publicInvitations', uuid_invitation);
+    await setDoc(invitationRef, invitation);
 
     console.log('✅ Invitación generada exitosamente:', {
       uuid_invitation,
-      storageUrl,
       publicUrl,
     });
-
-    // 11. Opcional: Guardar referencia en Firestore
-    // await updateDoc(partyRef, {
-    //   'invitation.uuid': uuid_invitation,
-    //   'invitation.url': publicUrl,
-    //   'invitation.storageUrl': storageUrl,
-    //   'invitation.generatedAt': new Date(),
-    // });
 
     return {
       success: true,
       uuid_invitation,
-      storageUrl,
+      storageUrl: `firestore://publicInvitations/${uuid_invitation}`,
       publicUrl,
     };
 

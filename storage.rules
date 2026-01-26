@@ -3,24 +3,33 @@ service firebase.storage {
   match /b/{bucket}/o {
     
     // ===================================
-    // INVITACIONES PÚBLICAS ESTÁTICAS
+    // IMÁGENES DE FIESTAS
     // ===================================
-    // JSON de invitaciones - lectura pública
+    // Imágenes de portada, banners, galería, etc.
+    match /party-images/{partyId}/{imageType}/{fileName} {
+      // Lectura pública (para invitaciones)
+      allow read: if true;
+      
+      // Escritura solo para usuarios autenticados
+      allow write: if request.auth != null;
+      
+      // Validaciones adicionales
+      allow write: if request.auth != null &&
+        request.resource.size < 5 * 1024 * 1024 && // Máximo 5MB
+        request.resource.contentType.matches('image/.*'); // Solo imágenes
+    }
+    
+    // ===================================
+    // INVITACIONES (legacy - ya no se usa)
+    // ===================================
     match /invitations/{invitationId} {
-      allow read: if true;  // Cualquiera puede leer
-      allow write: if request.auth != null;  // Solo usuarios autenticados pueden escribir
+      allow read: if true;
+      allow write: if request.auth != null;
     }
     
     // ===================================
-    // IMÁGENES Y OTROS ARCHIVOS
+    // AVATARES DE USUARIO
     // ===================================
-    // Imágenes de portada, galería, banners, etc.
-    match /party-images/{allPaths=**} {
-      allow read: if true;  // Públicas para compartir
-      allow write: if request.auth != null;  // Solo usuarios autenticados
-    }
-    
-    // Avatares de usuario
     match /user-avatars/{userId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;

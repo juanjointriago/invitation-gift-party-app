@@ -12,6 +12,8 @@ import { Textarea } from '../../components/ui/textarea';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { MultiStepForm, type MultiStepFormStep } from '../../components/ui';
 import { PublicInvitationActions } from '../../components/PublicInvitationActions';
+import { ImageUpload } from '../../components/ui/ImageUpload';
+import { GalleryUpload } from '../../components/ui/GalleryUpload';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { PartyService } from '../../services/party.service';
 import { useNotificationStore } from '../../stores/notification.store';
@@ -769,40 +771,59 @@ export const PartyEditorPage: React.FC = () => {
                 })}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <Input
-                  label="Imagen de portada"
-                  placeholder="https://..."
-                  {...register('themeConfig.coverImageUrl')}
-                  error={errors.themeConfig?.coverImageUrl?.message}
-                />
-                <Input
-                  label="Banner login"
-                  placeholder="https://..."
-                  {...register('themeConfig.loginBannerUrl')}
-                  error={errors.themeConfig?.loginBannerUrl?.message}
-                />
-              </div>
+              {/* Imagen de portada */}
+              <Controller
+                control={control}
+                name="themeConfig.coverImageUrl"
+                render={({ field }) => (
+                  <ImageUpload
+                    label="Imagen de portada"
+                    description="Imagen principal que se mostrará en la invitación pública"
+                    currentImageUrl={field.value}
+                    onImageUploaded={(url) => field.onChange(url)}
+                    onImageDeleted={() => field.onChange('')}
+                    imageType="cover"
+                    partyId={p_uuid}
+                    aspectRatio="16/9"
+                  />
+                )}
+              />
+
+              {/* Banner de login */}
+              <Controller
+                control={control}
+                name="themeConfig.loginBannerUrl"
+                render={({ field }) => (
+                  <ImageUpload
+                    label="Banner de login"
+                    description="Imagen que se mostrará en la página de inicio de sesión"
+                    currentImageUrl={field.value}
+                    onImageUploaded={(url) => field.onChange(url)}
+                    onImageDeleted={() => field.onChange('')}
+                    imageType="banner"
+                    partyId={p_uuid}
+                    aspectRatio="21/9"
+                  />
+                )}
+              />
+
+              {/* Galería de imágenes */}
               <Controller
                 control={control}
                 name="themeConfig.homeGalleryImages"
                 render={({ field }) => (
-                  <Textarea
-                    label="Galería (URLs separadas por coma)"
-                    placeholder="https://img1.com, https://img2.com"
-                    value={(field.value || []).join(', ')}
-                    onChange={(e) =>
-                      field.onChange(
-                        e.target.value
-                          .split(',')
-                          .map((url) => url.trim())
-                          .filter(Boolean)
-                      )
-                    }
-                    error={errors.themeConfig?.homeGalleryImages?.message as string | undefined}
+                  <GalleryUpload
+                    label="Galería de imágenes"
+                    description="Imágenes que se mostrarán en la galería de la invitación"
+                    currentImages={field.value || []}
+                    onImagesUpdated={(urls) => field.onChange(urls)}
+                    imageType="gallery"
+                    partyId={p_uuid}
+                    maxImages={10}
                   />
                 )}
               />
+
               <div className="grid md:grid-cols-2 gap-4">
                 <Input
                   label="Título de bienvenida"
