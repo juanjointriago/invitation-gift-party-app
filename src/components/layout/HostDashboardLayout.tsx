@@ -35,7 +35,7 @@ export const HostDashboardLayout: React.FC = () => {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
           <Link
-            to="/host/dashboard"
+            to="/host"
             className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-primary/10 transition-colors ${
               sidebarOpen ? '' : 'justify-center'
             }`}
@@ -44,7 +44,7 @@ export const HostDashboardLayout: React.FC = () => {
             {sidebarOpen && <span className="text-sm font-medium">Dashboard</span>}
           </Link>
           <Link
-            to="/host/party-editor"
+            to="/host/create"
             className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-primary/10 transition-colors ${
               sidebarOpen ? '' : 'justify-center'
             }`}
