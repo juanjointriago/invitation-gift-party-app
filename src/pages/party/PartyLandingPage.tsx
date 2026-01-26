@@ -79,6 +79,51 @@ export const PartyLandingPage: React.FC = () => {
     );
   }
 
+  if (error && !fullParty) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-error/5 via-background to-accent/5 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full"
+        >
+          <Card className="shadow-xl">
+            <CardBody className="space-y-6 text-center py-12">
+              <div className="text-6xl">😕</div>
+              <div className="space-y-2">
+                <h1 className="text-2xl font-bold text-text">Fiesta no encontrada</h1>
+                <p className="text-text-muted">{error}</p>
+              </div>
+              <div className="space-y-3 pt-6">
+                <Button
+                  fullWidth
+                  variant="primary"
+                  onClick={() => navigate('/')}
+                  className="h-11"
+                >
+                  🏠 Ir a inicio
+                </Button>
+                <Button
+                  fullWidth
+                  variant="outline"
+                  onClick={() => navigate('/auth/login')}
+                  className="h-11"
+                >
+                  Iniciar sesión
+                </Button>
+              </div>
+              <div className="pt-4 border-t border-border">
+                <p className="text-xs text-text-muted">
+                  Si crees que esto es un error, verifica el enlace de invitación
+                </p>
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-accent/5">
       <div className="container-app py-10">
@@ -238,16 +283,6 @@ export const PartyLandingPage: React.FC = () => {
                 >
                   {p_uuid}
                 </p>
-              </motion.div>
-            )}
-
-            {/* Error State */}
-            {error && (
-              <motion.div
-                variants={itemVariants}
-                className="bg-error/10 border border-error text-error p-3 rounded-lg text-sm"
-              >
-                Error: {error}
               </motion.div>
             )}
           </motion.div>
