@@ -68,7 +68,7 @@ export function PublicInvitation() {
 
   // Redirigir al landing de la fiesta
   const handleConfirmAttendance = () => {
-    navigate(`/party/${invitation.party_uuid}/landing?p_uuid=${invitation.party_uuid}`);
+    navigate(`/party/${invitation.party_uuid}?p_uuid=${invitation.party_uuid}`);
   };
 
   return (
