@@ -55,7 +55,7 @@ export class AuthService {
     }
   };
 
-  static signUp = async (signUpUser: Omit<IUser, 'id' | 'createdAt' | 'lastLogin'>): Promise<{ isAuthenticated: boolean; message: string }> => {
+  static signUp = async (signUpUser: Omit<IUser, 'id' | 'createdAt' | 'lastLogin'>): Promise<{ isAuthenticated: boolean; message: string; user?: IUser }> => {
     const {
       email,
       password,
@@ -79,30 +79,29 @@ export class AuthService {
         const dataUser:IUser = {
           id: uid,
           name,
-          lastName: '',
+          lastName: signUpUser.lastName || '',
           email,
           role,
           photoURL: photoURL || '',
           phone,
-          // birthDate: signUpUser.birthDate,
           city,
           country,
-          isActive: false,
+          isActive: true,
           createdAt: Date.now(),
           updatedAt: Date.now(),
           lastLogin: Date.now(),
         };
         await updateProfile(userCredential.user, { displayName: name });
-        console.log('colecion de usuarios 😎 ', COLLECTION_USERS);
+        console.log('colección de usuarios 😎 ', COLLECTION_USERS);
         await setItem(COLLECTION_USERS, dataUser);
-        //Add preffered info and Total fee for user
-        await signOut(auth);
-        return { isAuthenticated: true, message: 'Registro completo: Su cuenta se encuentra en proceso de activación' };
+        // No hacer signOut para mantener la sesión activa
+        return { isAuthenticated: true, message: '¡Cuenta creada exitosamente!', user: dataUser };
       }
       return { isAuthenticated: false, message: 'No se pudo registrar el usuario' };
     } catch (error: any) {
       console.warn('Error al registrar el usuario',{error})
-      await signOut(auth);
+      // signOut en caso de error
+      await signOut(auth).catch(() => null);
       return { isAuthenticated: false, message: `Error al registrar usuario: ${error.message}` };
     }
   };

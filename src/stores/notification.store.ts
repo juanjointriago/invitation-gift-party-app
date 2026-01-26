@@ -7,8 +7,9 @@ export type SyncStatus = 'idle' | 'loading' | 'success' | 'error';
 export interface Notification {
   id: string;
   type: NotificationType;
-  title: string;
-  message?: string;
+  title?: string;
+  message: string;
+  description?: string;
   duration?: number | null; // ms, null = persistent
   createdAt: number;
 }

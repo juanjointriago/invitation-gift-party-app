@@ -61,9 +61,16 @@ export const NotificationCenter: React.FC = () => {
           >
             <div className="flex-shrink-0 mt-0.5">{getIcon(notification.type)}</div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-text">{notification.title}</h3>
+              {notification.title && (
+                <h3 className="text-sm font-semibold text-text">{notification.title}</h3>
+              )}
               {notification.message && (
-                <p className="text-sm text-text-muted mt-1">{notification.message}</p>
+                <p className={`text-sm text-text-muted ${notification.title ? 'mt-1' : ''}`}>
+                  {notification.message}
+                </p>
+              )}
+              {notification.description && (
+                <p className="text-xs text-text-muted mt-1">{notification.description}</p>
               )}
             </div>
             <button

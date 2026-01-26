@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -6,6 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardHeader, CardBody, CardFooter } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
+import { AuthService } from '../../services/auth.service';
+import { useNotificationStore } from '../../stores/notification.store';
 
 const resetSchema = z.object({
   email: z
@@ -25,6 +27,8 @@ export const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const p_uuid = searchParams.get('p_uuid');
+  const [loading, setLoading] = useState(false);
+  const { addNotification } = useNotificationStore();
 
   const {
     register,
@@ -36,9 +40,29 @@ export const ResetPasswordPage: React.FC = () => {
   });
 
   const onSubmit = async (data: ResetFormValues) => {
-    // TODO: integrar con AuthService.resetPassword
-    console.log('Reset password for', data.email);
-    navigate(`/auth/login${p_uuid ? `?p_uuid=${p_uuid}` : ''}`);
+    setLoading(true);
+    
+    try {
+      await AuthService.resetPassword(data.email);
+      
+      addNotification({
+        type: 'success',
+        message: 'Correo enviado',
+        description: 'Revisa tu correo para restablecer tu contraseña',
+      });
+      
+      setTimeout(() => {
+        navigate(`/auth/login${p_uuid ? `?p_uuid=${p_uuid}` : ''}`);
+      }, 2000);
+    } catch (err) {
+      addNotification({
+        type: 'error',
+        message: 'Error al enviar correo',
+        description: err instanceof Error ? err.message : 'Intenta nuevamente',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,7 +80,7 @@ export const ResetPasswordPage: React.FC = () => {
             error={errors.email?.message}
             {...register('email')}
           />
-          <Button type="submit" fullWidth>
+          <Button type="submit" fullWidth isLoading={loading}>
             Enviar enlace
           </Button>
         </form>

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../../stores/auth.store';
+import { useNotificationStore } from '../../stores/notification.store';
 import { Card, CardHeader, CardBody, CardFooter } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
@@ -31,6 +32,7 @@ export const LoginPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const p_uuid = searchParams.get('p_uuid');
   const { login, loading, error, clearError } = useAuthStore();
+  const { addNotification } = useNotificationStore();
 
   const {
     register,
@@ -43,12 +45,30 @@ export const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormValues) => {
     clearError();
-    await login({ email: data.email, password: data.password });
-    // Redirigir según rol o al flujo de party
-    if (p_uuid) {
-      navigate(`/party/${p_uuid}`);
-    } else {
-      navigate('/');
+    
+    try {
+      await login({ email: data.email, password: data.password });
+      
+      addNotification({
+        type: 'success',
+        message: '¡Bienvenido!',
+        description: 'Sesión iniciada correctamente',
+      });
+      
+      // Pequeño delay para mostrar la notificación antes de navegar
+      setTimeout(() => {
+        if (p_uuid) {
+          navigate(`/party/${p_uuid}`);
+        } else {
+          navigate('/');
+        }
+      }, 500);
+    } catch (err) {
+      addNotification({
+        type: 'error',
+        message: 'Error al iniciar sesión',
+        description: err instanceof Error ? err.message : 'Credenciales inválidas',
+      });
     }
   };
 

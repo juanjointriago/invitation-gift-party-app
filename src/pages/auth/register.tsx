@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuthStore } from '../../stores/auth.store';
+import { useNotificationStore } from '../../stores/notification.store';
 import { Card, CardHeader, CardBody, CardFooter } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
@@ -66,6 +67,7 @@ export const RegisterPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const p_uuid = searchParams.get('p_uuid');
   const { register: registerUser, loading, error, clearError } = useAuthStore();
+  const { addNotification } = useNotificationStore();
 
   const {
     register,
@@ -97,11 +99,37 @@ export const RegisterPage: React.FC = () => {
       isActive: true,
     };
 
-    await registerUser(payload);
-    if (p_uuid) {
-      navigate(`/party/${p_uuid}`);
-    } else {
-      navigate('/');
+    try {
+      const result = await registerUser(payload);
+      
+      if (result.isAuthenticated) {
+        addNotification({
+          type: 'success',
+          message: '¡Cuenta creada exitosamente!',
+          description: `Bienvenido ${data.name}`,
+        });
+        
+        // Pequeño delay para mostrar la notificación antes de navegar
+        setTimeout(() => {
+          if (p_uuid) {
+            navigate(`/party/${p_uuid}`);
+          } else {
+            navigate('/');
+          }
+        }, 500);
+      } else {
+        addNotification({
+          type: 'error',
+          message: 'Error al crear cuenta',
+          description: result.message || 'No se pudo completar el registro',
+        });
+      }
+    } catch (err) {
+      addNotification({
+        type: 'error',
+        message: 'Error al crear cuenta',
+        description: err instanceof Error ? err.message : 'Ocurrió un error inesperado',
+      });
     }
   };
 
