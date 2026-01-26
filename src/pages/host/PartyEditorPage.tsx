@@ -11,6 +11,7 @@ import { Input } from '../../components/ui/input';
 import { Textarea } from '../../components/ui/textarea';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { MultiStepForm, type MultiStepFormStep } from '../../components/ui';
+import { PublicInvitationActions } from '../../components/PublicInvitationActions';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { PartyService } from '../../services/party.service';
 import { useNotificationStore } from '../../stores/notification.store';
@@ -891,6 +892,12 @@ export const PartyEditorPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-text">Editar fiesta</h1>
         <p className="text-text-muted">Actualiza datos, preguntas, regalos y tema.</p>
       </motion.div>
+
+      {/* Sección de invitación pública */}
+      <PublicInvitationActions 
+        party_uuid={p_uuid} 
+        partyStatus={watch('status')} 
+      />
 
       <form onSubmit={submitForm}>
         <MultiStepForm

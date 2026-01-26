@@ -1,0 +1,37 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ===================================
+    // INVITACIONES PÚBLICAS ESTÁTICAS
+    // ===================================
+    // JSON de invitaciones - lectura pública
+    match /invitations/{invitationId} {
+      allow read: if true;  // Cualquiera puede leer
+      allow write: if request.auth != null;  // Solo usuarios autenticados pueden escribir
+    }
+    
+    // ===================================
+    // IMÁGENES Y OTROS ARCHIVOS
+    // ===================================
+    // Imágenes de portada, galería, banners, etc.
+    match /party-images/{allPaths=**} {
+      allow read: if true;  // Públicas para compartir
+      allow write: if request.auth != null;  // Solo usuarios autenticados
+    }
+    
+    // Avatares de usuario
+    match /user-avatars/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // ===================================
+    // RESTO DE ARCHIVOS (por defecto)
+    // ===================================
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

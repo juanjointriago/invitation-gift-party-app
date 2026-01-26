@@ -30,6 +30,7 @@ const PartyResponsesPage = lazy(() => import('../pages/host/PartyResponsesPage')
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
 const AdminPartiesPage = lazy(() => import('../pages/admin/AdminPartiesPage').then((m) => ({ default: m.AdminPartiesPage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const PublicInvitation = lazy(() => import('../pages/public/PublicInvitation').then((m) => ({ default: m.PublicInvitation })));
 
 const fallback = (
   <div className="py-10 text-center text-sm text-text-muted">Cargando…</div>
@@ -67,6 +68,12 @@ export const routeConfig: RouteObject[] = [
         element: withSuspense(<ResetPasswordPage />),
       },
     ],
+  },
+
+  // Ruta pública de invitación (sin autenticación requerida)
+  {
+    path: '/public-invitation',
+    element: withSuspense(<PublicInvitation />),
   },
 
   // Rutas de invitado (party)
