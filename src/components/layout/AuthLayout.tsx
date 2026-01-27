@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 /**
  * Layout para páginas de autenticación (login, register, reset-password)
@@ -9,10 +10,15 @@ export const AuthLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 p-4 pb-24 sm:pb-8">
       {/* Logo/Brand */}
-      <div className="mb-8 text-center">
+      <motion.div 
+        className="mb-8 text-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+      >
         <h1 className="text-4xl font-bold text-primary mb-2">🎉 PartyGifts</h1>
         <p className="text-text-muted">Gestiona tus fiestas y regalos de forma fácil</p>
-      </div>
+      </motion.div>
 
       {/* Content */}
       <div className="w-full max-w-md flex-shrink-0">

@@ -47,17 +47,23 @@ export function InvitationCover({
         className="absolute inset-0 w-full h-full"
       >
         {coverImageUrl ? (
-          <img
+          <motion.img
             src={coverImageUrl}
             alt={title}
             className="w-full h-full object-cover"
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
           />
         ) : (
-          <div 
+          <motion.div 
             className="w-full h-full"
             style={{
               background: `linear-gradient(135deg, ${primaryColor}20 0%, ${primaryColor}40 100%)`,
             }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           />
         )}
       </motion.div>
