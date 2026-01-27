@@ -16,10 +16,8 @@ export const PartyHomePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const p_uuid = searchParams.get('p_uuid') || partyUuid || '';
 
-  const { currentParty, applyPartyTheme } = usePartyContextStore((s) => ({
-    currentParty: s.currentParty,
-    applyPartyTheme: s.applyPartyTheme,
-  }));
+  const currentParty = usePartyContextStore((s) => s.currentParty);
+  const applyPartyTheme = usePartyContextStore((s) => s.applyPartyTheme);
 
   const { user: currentUser } = useAuthStore();
   const { fullParty, loading, error } = usePartyLoader(p_uuid);

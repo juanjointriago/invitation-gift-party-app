@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { Card, CardBody } from './ui/card';
-import { generateStaticInvitation, regenerateStaticInvitation } from '../services/invitationGenerator.service';
+import { generateStaticInvitation, regenerateStaticInvitation, getExistingInvitation } from '../services/invitationGenerator.service';
 import { toast } from 'sonner';
 
 interface PublicInvitationActionsProps {
@@ -12,8 +12,32 @@ interface PublicInvitationActionsProps {
 
 export function PublicInvitationActions({ party_uuid, partyStatus }: PublicInvitationActionsProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Cargar invitación existente al montar
+  useEffect(() => {
+    const loadExisting = async () => {
+      if (partyStatus !== 'published') {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const existing = await getExistingInvitation(party_uuid);
+        if (existing && existing.success) {
+          setInvitationUrl(existing.publicUrl);
+        }
+      } catch (error) {
+        console.error('Error cargando invitación existente:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExisting();
+  }, [party_uuid, partyStatus]);
 
   // Solo mostrar si está publicada
   if (partyStatus !== 'published') {
@@ -23,11 +47,11 @@ export function PublicInvitationActions({ party_uuid, partyStatus }: PublicInvit
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
-      const result = await generateStaticInvitation(party_uuid);
+      const result = await generateStaticInvitation(party_uuid, false);
       
       if (result.success) {
         setInvitationUrl(result.publicUrl);
-        toast.success('¡Invitación generada exitosamente!', {
+        toast.success('¡Invitación lista!', {
           description: 'Ya puedes compartir el enlace público',
         });
       } else {
@@ -103,13 +127,23 @@ export function PublicInvitationActions({ party_uuid, partyStatus }: PublicInvit
                 Invitación Pública
               </h3>
               <p className="text-sm text-purple-700">
-                Genera un enlace público para compartir tu invitación sin que los invitados necesiten crear cuenta
+                {invitationUrl 
+                  ? 'Tu enlace público está listo para compartir'
+                  : 'Genera un enlace público para compartir tu invitación sin que los invitados necesiten crear cuenta'}
               </p>
             </div>
           </div>
 
+          {/* Loading skeleton */}
+          {isLoading && (
+            <div className="bg-white rounded-lg p-4 border border-purple-200">
+              <div className="h-4 bg-gray-200 rounded animate-pulse mb-2 w-32"></div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          )}
+
           {/* URL de invitación */}
-          {invitationUrl && (
+          {!isLoading && invitationUrl && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -141,37 +175,39 @@ export function PublicInvitationActions({ party_uuid, partyStatus }: PublicInvit
           )}
 
           {/* Botones de acción */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {!invitationUrl ? (
-              <Button
-                type="button"
-                onClick={handleGenerate}
-                isLoading={isGenerating}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                {isGenerating ? 'Generando...' : '✨ Generar invitación pública'}
-              </Button>
-            ) : (
-              <>
+          {!isLoading && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              {!invitationUrl ? (
                 <Button
                   type="button"
-                  onClick={handleCopyLink}
+                  onClick={handleGenerate}
+                  isLoading={isGenerating}
                   className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                 >
-                  📋 Copiar enlace
+                  {isGenerating ? 'Generando...' : '✨ Generar invitación pública'}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleRegenerate}
-                  isLoading={isGenerating}
-                  className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
-                >
-                  {isGenerating ? 'Regenerando...' : '🔄 Regenerar'}
-                </Button>
-              </>
-            )}
-          </div>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    📋 Copiar enlace
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRegenerate}
+                    isLoading={isGenerating}
+                    className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
+                    {isGenerating ? 'Regenerando...' : '🔄 Actualizar'}
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Info adicional */}
           <div className="bg-purple-100 rounded-lg p-3 text-xs text-purple-800">

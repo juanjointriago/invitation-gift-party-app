@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { usePartyContextStore } from '../../stores/partyContext.store';
 
@@ -8,11 +8,17 @@ import { usePartyContextStore } from '../../stores/partyContext.store';
  */
 export const PartyGuestLayout: React.FC = () => {
   const currentParty = usePartyContextStore((state) => state.currentParty);
+  const [mounted, setMounted] = useState(false);
+
+  // Evitar hidratación incorrecta esperando al montaje
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header temático */}
-      {currentParty?.themeConfig?.loginBannerUrl && (
+      {mounted && currentParty?.themeConfig?.loginBannerUrl && (
         <div
           className="h-48 bg-cover bg-center relative"
           style={{ backgroundImage: `url(${currentParty.themeConfig.loginBannerUrl})` }}
@@ -25,7 +31,7 @@ export const PartyGuestLayout: React.FC = () => {
       <header className="sticky top-0 z-40 w-full border-b border-border bg-white shadow-sm">
         <div className="container-app h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {currentParty?.themeConfig?.coverImageUrl && (
+            {mounted && currentParty?.themeConfig?.coverImageUrl && (
               <img
                 src={currentParty.themeConfig.coverImageUrl}
                 alt="Party"
@@ -33,11 +39,11 @@ export const PartyGuestLayout: React.FC = () => {
               />
             )}
             <h1 className="text-lg font-bold text-primary">
-              {currentParty?.title || 'Mi Fiesta'}
+              {mounted && currentParty?.title ? currentParty.title : 'Mi Fiesta'}
             </h1>
           </div>
           <div className="text-sm text-text-muted">
-            {currentParty?.status === 'published' && (
+            {mounted && currentParty?.status === 'published' && (
               <span className="text-success">✓ Fiesta Activa</span>
             )}
           </div>

@@ -83,6 +83,75 @@ export class PartyAssistanceService {
   }
 
   /**
+   * Crear un registro de asistencia inicial con respuestas a preguntas
+   */
+  static async createInitialAssistanceWithAnswers(
+    partyUuid: string,
+    guestUserId: string,
+    answers: AnswerToQuestion[]
+  ): Promise<PartyAssistanceGift> {
+    try {
+      const now = Date.now();
+      const assistanceId = `${partyUuid}_${guestUserId}`;
+
+      const assistance: PartyAssistanceGift = {
+        id: assistanceId,
+        party_uuid: partyUuid,
+        guest_user_id: guestUserId,
+        selectedGiftId: '',
+        selectedGiftNameSnapshot: '',
+        quantity: 0,
+        answersToQuestions: answers,
+        attendanceConfirmed: true,
+        createdAt: now,
+        updatedAt: now,
+        isActive: true,
+      };
+
+      await setItem(COLLECTION_PARTY_ASSISTANCE, assistance);
+      console.debug('Initial assistance with answers created:', assistanceId);
+      return assistance;
+    } catch (error) {
+      console.error('Error creating initial assistance with answers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Actualizar solo las respuestas a preguntas de una asistencia existente
+   */
+  static async updateAssistanceAnswers(
+    partyUuid: string,
+    guestUserId: string,
+    answers: AnswerToQuestion[]
+  ): Promise<void> {
+    try {
+      const assistanceId = `${partyUuid}_${guestUserId}`;
+      
+      // Obtener el registro existente primero
+      const existing = await this.getAssistanceByGuest(partyUuid, guestUserId);
+      if (!existing) {
+        throw new Error('Assistance record not found');
+      }
+      
+      // Actualizar con las nuevas respuestas
+      const updated = {
+        ...existing,
+        answersToQuestions: answers,
+        attendanceConfirmed: true,
+        updatedAt: Date.now(),
+      };
+      
+      await updateItem(COLLECTION_PARTY_ASSISTANCE, updated);
+      
+      console.debug('Assistance answers updated:', assistanceId);
+    } catch (error) {
+      console.error('Error updating assistance answers:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Crear o actualizar la asistencia de un invitado
    * IMPORTANTE: En producción, esta lógica debería estar en una Cloud Function
    * para garantizar transaccionalidad y evitar race conditions

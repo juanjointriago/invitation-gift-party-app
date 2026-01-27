@@ -17,6 +17,8 @@ export type { } from './select';
 export { Badge } from './badge';
 export type { } from './badge';
 
+export { ThemeToggle } from './ThemeToggle';
+
 export { Label } from './label';
 
 export {

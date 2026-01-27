@@ -97,7 +97,7 @@ export const HostDashboardPage: React.FC = () => {
   }, [parties]);
 
   const handleCreateParty = () => {
-    navigate('/host/party/new');
+    navigate('/host/create');
   };
 
   const filteredParties = useMemo(() => {

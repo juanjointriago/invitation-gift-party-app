@@ -1,4 +1,4 @@
-import { doc, getDoc, collection, getDocs, query, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, setDoc } from 'firebase/firestore';
 import { db } from '../db/initialize';
 import type { StaticInvitation, GeneratedInvitationResult } from '../types/invitation.types';
 
@@ -12,15 +12,59 @@ function generateUUID(): string {
 }
 
 /**
+ * Obtiene una invitación existente para una fiesta
+ * @param party_uuid - ID de la fiesta
+ * @returns Invitación existente o null
+ */
+export async function getExistingInvitation(
+  party_uuid: string
+): Promise<GeneratedInvitationResult | null> {
+  try {
+    // Buscar en publicInvitations por party_uuid
+    const invitationsRef = collection(db, 'publicInvitations');
+    const q = query(invitationsRef, where('party_uuid', '==', party_uuid));
+    const querySnap = await getDocs(q);
+
+    if (!querySnap.empty) {
+      const invDoc = querySnap.docs[0];
+      const invitation = invDoc.data() as StaticInvitation;
+      
+      return {
+        success: true,
+        uuid_invitation: invitation.uuid_invitation,
+        storageUrl: `firestore://publicInvitations/${invitation.uuid_invitation}`,
+        publicUrl: invitation.invitationUrl,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error buscando invitación existente:', error);
+    return null;
+  }
+}
+
+/**
  * Genera el JSON estático de invitación pública
  * @param party_uuid - ID del documento en Firestore parties/{uuid}
+ * @param forceRegenerate - Si es true, genera una nueva aunque exista una
  * @returns Resultado con URLs y datos generados
  */
 export async function generateStaticInvitation(
-  party_uuid: string
+  party_uuid: string,
+  forceRegenerate: boolean = false
 ): Promise<GeneratedInvitationResult> {
   try {
     console.log('🎨 Generando invitación estática para party:', party_uuid);
+
+    // Verificar si ya existe una invitación (a menos que se fuerce regeneración)
+    if (!forceRegenerate) {
+      const existing = await getExistingInvitation(party_uuid);
+      if (existing) {
+        console.log('✅ Invitación existente encontrada:', existing.uuid_invitation);
+        return existing;
+      }
+    }
 
     // 1. Obtener datos de la fiesta
     const partyRef = doc(db, 'parties', party_uuid);
@@ -153,6 +197,6 @@ export async function regenerateStaticInvitation(
 ): Promise<GeneratedInvitationResult> {
   console.log('🔄 Regenerando invitación para party:', party_uuid);
   
-  // Simplemente genera una nueva (sobrescribirá la anterior si existe)
-  return generateStaticInvitation(party_uuid);
+  // Forzar generación nueva
+  return generateStaticInvitation(party_uuid, true);
 }

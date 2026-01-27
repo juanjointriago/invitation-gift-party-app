@@ -14,6 +14,8 @@ interface QuestionFormProps {
   onSkip?: () => void;
   isLoading?: boolean;
   allowSkip?: boolean;
+  initialAnswers?: Record<string, string | string[]>;
+  isReadOnly?: boolean;
 }
 
 // Generar esquema Zod dinámicamente basado en preguntas
@@ -45,6 +47,8 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
   onSkip,
   isLoading = false,
   allowSkip = true,
+  initialAnswers = {},
+  isReadOnly = false,
 }) => {
   const schema = generateQuestionSchema(questions);
   type FormValues = z.infer<typeof schema>;
@@ -56,6 +60,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: 'onBlur',
+    defaultValues: initialAnswers as FormValues,
   });
 
   const handleFormSubmit = (data: FormValues) => {
@@ -100,6 +105,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                 <Textarea
                   placeholder="Escribe tu respuesta aquí..."
                   error={errors[question.id as keyof FormValues]?.message}
+                  disabled={isReadOnly}
                   {...register(question.id)}
                 />
               )}
@@ -109,10 +115,13 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                   {question.options?.map((option) => (
                     <label
                       key={option}
-                      className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      className={`flex items-center gap-3 p-3 border border-border rounded-lg transition-colors ${
+                        isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-gray-50'
+                      }`}
                     >
                       <input
                         type="radio"
+                        disabled={isReadOnly}
                         value={option}
                         {...register(question.id)}
                         className="w-4 h-4 cursor-pointer"
@@ -133,11 +142,14 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                   {question.options?.map((option) => (
                     <label
                       key={option}
-                      className="flex items-center gap-3 p-3 border border-border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      className={`flex items-center gap-3 p-3 border border-border rounded-lg transition-colors ${
+                        isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-gray-50'
+                      }`}
                     >
                       <input
                         type="checkbox"
                         value={option}
+                        disabled={isReadOnly}
                         {...register(question.id)}
                         className="w-4 h-4 cursor-pointer"
                       />
@@ -157,7 +169,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
       </motion.div>
 
       <div className="flex gap-3 mt-8 pt-6 border-t border-border">
-        {allowSkip && onSkip && (
+        {allowSkip && onSkip && !isReadOnly && (
           <Button
             type="button"
             variant="ghost"
@@ -167,15 +179,17 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
             Saltar
           </Button>
         )}
-        <Button
-          type="submit"
-          variant="primary"
-          isLoading={isLoading}
-          disabled={isLoading}
-          fullWidth={!allowSkip}
-        >
-          Enviar respuestas
-        </Button>
+        {!isReadOnly && (
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={isLoading}
+            disabled={isLoading}
+            fullWidth={!allowSkip}
+          >
+            Enviar respuestas
+          </Button>
+        )}
       </div>
     </form>
   );

@@ -44,12 +44,42 @@ export const PartyGiftsPage: React.FC = () => {
   const clearSelection = usePartyGiftsStore((s) => s.clearSelection);
   const gifts = usePartyGiftsStore((s) => s.gifts);
   const selectedGift = useSelectedGift();
+  const selectedGiftId = selectedGift?.id;
   const answers = usePartyQuestionsStore((s) => s.answers);
   const { user } = useAuthStore();
   const { fullParty, loading: partyLoading, error: partyError } = usePartyLoader(p_uuid);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hasSelectedGift, setHasSelectedGift] = useState(false);
+  const [existingGiftName, setExistingGiftName] = useState<string>('');
+  const [loadingAssistance, setLoadingAssistance] = useState(true);
   const submittedRef = useRef(false);
+
+  // Cargar regalo previamente seleccionado
+  useEffect(() => {
+    const loadExistingGift = async () => {
+      if (!user?.id || !p_uuid || partyLoading) return;
+
+      try {
+        setLoadingAssistance(true);
+        const assistance = await PartyAssistanceService.getAssistanceByGuest(p_uuid, user.id);
+        
+        if (assistance && assistance.selectedGiftId && assistance.selectedGiftId !== '') {
+          setHasSelectedGift(true);
+          setExistingGiftName(assistance.selectedGiftNameSnapshot || 'Tu regalo seleccionado');
+          // Marcar el regalo como seleccionado en el store
+          selectGift(assistance.selectedGiftId);
+          toast.info('Ya tienes un regalo seleccionado anteriormente');
+        }
+      } catch (error) {
+        console.error('Error loading existing gift:', error);
+      } finally {
+        setLoadingAssistance(false);
+      }
+    };
+
+    loadExistingGift();
+  }, [user?.id, p_uuid, partyLoading, selectGift]);
 
   useEffect(() => {
     if (!p_uuid) {
@@ -61,7 +91,7 @@ export const PartyGiftsPage: React.FC = () => {
       const giftsFromParty = (fullParty.giftList || []).map((g) => ({
         ...g,
         isAvailable: g.remainingQuantity > 0,
-        isSelected: selectedGift?.id === g.id,
+        isSelected: selectedGiftId === g.id,
       }));
 
       if (giftsFromParty.length > 0) {
@@ -72,13 +102,23 @@ export const PartyGiftsPage: React.FC = () => {
     } else if (gifts.length === 0 && !partyLoading) {
       setGifts(mockGifts.map(g => ({ ...g, isAvailable: g.remainingQuantity > 0, isSelected: false })) as any);
     }
-  }, [fullParty, gifts.length, navigate, p_uuid, partyLoading, setGifts, selectedGift]);
+  }, [fullParty, gifts.length, navigate, p_uuid, partyLoading, selectedGiftId]);
 
   const handleSelectGift = (giftId: string) => {
+    if (hasSelectedGift) {
+      toast.warning('Ya tienes un regalo seleccionado. No puedes cambiar tu elección.');
+      return;
+    }
     selectGift(giftId);
   };
 
   const handleConfirm = async () => {
+    // Prevenir si ya tiene un regalo seleccionado
+    if (hasSelectedGift) {
+      toast.warning('Ya has confirmado tu regalo anteriormente.');
+      return;
+    }
+
     // Prevenir doble envío
     if (submittedRef.current) return;
 
@@ -110,11 +150,19 @@ export const PartyGiftsPage: React.FC = () => {
       updateGift(selectedGift.id, {
         remainingQuantity: nextRemaining,
       });
+      
+      // Marcar como que ya tiene un regalo seleccionado
+      setHasSelectedGift(true);
+      setExistingGiftName(selectedGift.name);
+      
       clearSelection();
 
-      toast.success('Asistencia confirmada y regalo apartado');
+      toast.success('¡Regalo confirmado exitosamente! No podrás cambiar tu elección.');
 
-      navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`);
+      // Redirigir después de un breve delay
+      setTimeout(() => {
+        navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`);
+      }, 2000);
     } catch (err) {
       submittedRef.current = false; // Permitir reintentos en caso de error
       setSubmitError('No pudimos confirmar tu asistencia. Intenta nuevamente.');
@@ -133,15 +181,39 @@ export const PartyGiftsPage: React.FC = () => {
       >
         <Card>
           <CardHeader>
-            <h2 className="text-2xl font-bold text-primary">Elige un regalo para la fiesta</h2>
+            <h2 className="text-2xl font-bold text-primary">
+              {hasSelectedGift ? 'Tu Regalo Seleccionado' : 'Elige un regalo para la fiesta'}
+            </h2>
             <p className="text-text-muted text-sm">
-              Selecciona un regalo de la lista disponible para confirmar tu asistencia.
+              {hasSelectedGift
+                ? 'Ya has seleccionado tu regalo. No es posible cambiarlo.'
+                : 'Selecciona un regalo de la lista disponible para confirmar tu asistencia.'}
             </p>
           </CardHeader>
 
           <CardBody className="space-y-6">
-            {partyLoading ? (
+            {loadingAssistance || partyLoading ? (
               <SkeletonLoader type="card" count={3} />
+            ) : hasSelectedGift ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-success/10 border-2 border-success rounded-lg p-6 text-center"
+              >
+                <div className="text-5xl mb-4">🎁</div>
+                <h3 className="text-xl font-bold text-success mb-2">¡Regalo Confirmado!</h3>
+                <p className="text-lg font-semibold text-text mb-4">{existingGiftName}</p>
+                <p className="text-sm text-text-muted mb-6">
+                  Tu regalo ha sido apartado exitosamente. Puedes ver los detalles de la fiesta en la página principal.
+                </p>
+                <Button
+                  onClick={() => navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`)}
+                  variant="primary"
+                  className="mx-auto"
+                >
+                  Ir al Home de la Fiesta
+                </Button>
+              </motion.div>
             ) : partyError ? (
               <div className="bg-error/10 border border-error text-error p-4 rounded-md">
                 <p className="font-semibold">Error al cargar regalos</p>
@@ -211,7 +283,7 @@ export const PartyGiftsPage: React.FC = () => {
           </CardBody>
 
           {/* Botones de acción */}
-          {gifts.length > 0 && (
+          {gifts.length > 0 && !hasSelectedGift && (
             <div className="border-t border-border p-6 flex gap-3 justify-end">
               <Button variant="outline" onClick={() => {
                 clearSelection();
