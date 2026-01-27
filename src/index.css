@@ -12,16 +12,16 @@
 
 :root {
   /* Paleta Global (Branding base de la app) */
-  --color-primary: #123456;
-  --color-secondary: #ABCDEF;
-  --color-accent: #FF6600;
-  --color-background: #F5F5F5;
+  --color-primary: #9333ea;
+  --color-secondary: #a855f7;
+  --color-accent: #ec4899;
+  --color-background: #f9fafb;
 
   /* Colores Semantic */
-  --color-text: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-border: #e0e0e0;
-  --color-border-light: #f0f0f0;
+  --color-text: #111827;
+  --color-text-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
 
   /* Estados */
   --color-success: #10b981;
@@ -73,20 +73,20 @@
 
 .dark {
   /* Colores de texto en modo oscuro */
-  --color-text: #f5f5f5;
-  --color-text-muted: #a0a0a0;
+  --color-text: #fafafa;
+  --color-text-muted: #a1a1aa;
   
   /* Colores de fondo en modo oscuro */
-  --color-background: #1a1a1a;
+  --color-background: #27272a;
   
   /* Bordes en modo oscuro */
-  --color-border: #404040;
-  --color-border-light: #303030;
+  --color-border: #52525b;
+  --color-border-light: #3f3f46;
   
   /* Ajustar primary/secondary/accent para mejor contraste */
-  --color-primary: #4a9eff;
-  --color-secondary: #bfe3ff;
-  --color-accent: #ff8833;
+  --color-primary: #a855f7;
+  --color-secondary: #c084fc;
+  --color-accent: #f472b6;
   
   /* Sombras más sutiles en dark mode */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
@@ -113,15 +113,22 @@
   border-color: var(--color-border);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-family-base);
-  background-color: var(--color-background);
-  color: var(--color-text);
   line-height: 1.6;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Fondo global automático para toda la app */
+html,
+body,
+#root {
+  @apply bg-gray-50 dark:bg-zinc-800;
+  @apply text-gray-900 dark:text-gray-50;
+  min-height: 100vh;
 }
 
 /* ============================================
@@ -197,34 +204,7 @@ html {
 }
 
 @layer utilities {
-  /* Fondos basados en el tema */
-  .bg-primary {
-    background-color: var(--color-primary);
-  }
-
-  .bg-secondary {
-    background-color: var(--color-secondary);
-  }
-
-  .bg-accent {
-    background-color: var(--color-accent);
-  }
-
-  .bg-error {
-    background-color: var(--color-error);
-  }
-
-  /* Bordes basados en el tema */
-  .border-primary {
-    border-color: var(--color-primary);
-  }
-
-  /* Texto de estados */
-  .text-error {
-    color: var(--color-error);
-  }
-
-  /* Variables de color como utilities */
+  /* Variables de color como utilities (sin duplicados) */
   .text-primary {
     color: var(--color-primary);
   }
@@ -245,6 +225,11 @@ html {
     color: var(--color-text-muted);
   }
 
+  .text-error {
+    color: var(--color-error);
+  }
+
+  /* Fondos basados en el tema */
   .bg-primary {
     background-color: var(--color-primary);
   }
@@ -261,6 +246,11 @@ html {
     background-color: var(--color-accent);
   }
 
+  .bg-error {
+    background-color: var(--color-error);
+  }
+
+  /* Bordes basados en el tema */
   .border-primary {
     border-color: var(--color-primary);
   }
@@ -282,7 +272,7 @@ html {
     transition-duration: var(--transition-slow);
   }
 
-  /* Sombras */
+  /* Sombras personalizadas */
   .shadow-custom-sm {
     box-shadow: var(--shadow-sm);
   }

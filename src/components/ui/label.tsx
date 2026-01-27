@@ -17,14 +17,14 @@ export const Label: React.FC<LabelProps> = ({
         block
         text-sm
         font-medium
-        text-text
+        text-gray-700 dark:text-gray-300
         mb-2
         ${className || ''}
       `}
       {...props}
     >
       {children}
-      {required && <span className="text-error ml-1">*</span>}
+      {required && <span className="text-red-600 dark:text-red-400 ml-1">*</span>}
     </label>
   );
 };

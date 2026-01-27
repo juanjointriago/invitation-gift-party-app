@@ -10,12 +10,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses = {
-  primary: 'bg-primary text-white hover:opacity-90 active:opacity-80',
-  secondary: 'bg-secondary text-white hover:opacity-90 active:opacity-80',
-  accent: 'bg-accent text-white hover:opacity-90 active:opacity-80',
-  ghost: 'bg-transparent text-primary hover:bg-primary/10 active:bg-primary/20',
-  outline: 'bg-transparent border-2 border-primary text-primary hover:bg-primary/5 active:bg-primary/10',
-  danger: 'bg-error text-white hover:opacity-90 active:opacity-80',
+  primary: 'bg-purple-600 dark:bg-purple-500 text-white hover:bg-purple-700 dark:hover:bg-purple-400 active:bg-purple-800 dark:active:bg-purple-600 shadow-sm dark:shadow-purple-900/20',
+  secondary: 'bg-purple-400 dark:bg-purple-600 text-white hover:bg-purple-500 dark:hover:bg-purple-500 active:bg-purple-600 dark:active:bg-purple-700 shadow-sm',
+  accent: 'bg-pink-600 dark:bg-pink-500 text-white hover:bg-pink-700 dark:hover:bg-pink-400 active:bg-pink-800 dark:active:bg-pink-600 shadow-sm dark:shadow-pink-900/20',
+  ghost: 'bg-transparent text-purple-600 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-zinc-600 active:bg-purple-200 dark:active:bg-zinc-500',
+  outline: 'bg-transparent border-2 border-purple-600 dark:border-purple-400 text-purple-600 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-zinc-600/50 active:bg-purple-100 dark:active:bg-zinc-500/50',
+  danger: 'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-400 active:bg-red-800 dark:active:bg-red-600 shadow-sm dark:shadow-red-900/20',
 };
 
 const sizeClasses = {

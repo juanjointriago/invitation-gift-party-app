@@ -32,10 +32,10 @@ function App() {
   // Mostrar pantalla de carga mientras se verifica la autenticación
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-800">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-primary mb-4">🎉 PartyGifts</h1>
-          <p className="text-text-muted">Cargando...</p>
+          <h1 className="text-2xl font-bold text-purple-600 dark:text-purple-300 mb-4">🎉 PartyGifts</h1>
+          <p className="text-gray-600 dark:text-zinc-200">Cargando...</p>
         </div>
       </div>
     );

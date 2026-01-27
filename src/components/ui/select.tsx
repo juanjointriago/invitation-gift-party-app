@@ -25,9 +25,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className={fullWidth ? 'w-full' : ''}>
         {label && (
-          <label className="block text-sm font-medium text-text mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
             {label}
-            {props.required && <span className="text-error ml-1">*</span>}
+            {props.required && <span className="text-red-600 dark:text-red-400 ml-1">*</span>}
           </label>
         )}
         <select
@@ -38,22 +38,23 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             px-4
             py-2
             border
-            border-border
+            border-gray-300 dark:border-zinc-600
             rounded-md
             font-base
             text-base
+            text-gray-900 dark:text-zinc-100
+            bg-white dark:bg-zinc-700
             transition-all
             duration-200
             focus:outline-none
             focus:ring-2
-            focus:ring-primary/50
-            focus:border-primary
-            disabled:bg-gray-100
+            focus:ring-purple-500/50 dark:focus:ring-purple-400/50
+            focus:border-purple-500 dark:focus:border-purple-400
+            disabled:bg-gray-100 dark:disabled:bg-zinc-800
             disabled:cursor-not-allowed
-            disabled:text-text-muted
+            disabled:text-gray-400 dark:disabled:text-zinc-500
             appearance-none
-            bg-white
-            ${error ? 'border-error focus:ring-error/50' : ''}
+            ${error ? 'border-red-600 dark:border-red-400 focus:ring-red-500/50' : ''}
             ${className || ''}
           `}
           {...props}
@@ -64,9 +65,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="text-error text-sm mt-1">{error}</p>}
+        {error && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error}</p>}
         {helperText && !error && (
-          <p className="text-text-muted text-sm mt-1">{helperText}</p>
+          <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1">{helperText}</p>
         )}
       </div>
     );

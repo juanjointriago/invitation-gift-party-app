@@ -8,13 +8,13 @@ interface BadgeProps {
 }
 
 const variantClasses = {
-  default: 'bg-gray-200 text-gray-800',
-  primary: 'bg-primary/10 text-primary',
-  secondary: 'bg-secondary/10 text-secondary',
-  success: 'bg-success/10 text-success',
-  error: 'bg-error/10 text-error',
-  warning: 'bg-warning/10 text-warning',
-  info: 'bg-info/10 text-info',
+  default: 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200',
+  primary: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300',
+  secondary: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+  success: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  error: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+  warning: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300',
+  info: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
 };
 
 export const Badge: React.FC<BadgeProps> = ({
