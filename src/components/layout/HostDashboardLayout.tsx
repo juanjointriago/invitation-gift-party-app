@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { Button } from '../ui/button';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 /**
  * Layout para el dashboard del anfitrión
@@ -85,6 +86,7 @@ export const HostDashboardLayout: React.FC = () => {
             ☰
           </button>
           <div className="flex-1 flex items-center justify-end gap-4">
+            <ThemeToggle />
             <span className="text-sm text-text-muted">{user?.name}</span>
           </div>
         </header>

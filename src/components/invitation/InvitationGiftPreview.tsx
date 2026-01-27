@@ -58,7 +58,7 @@ export function InvitationGiftPreview({
 
   return (
     <section 
-      className="py-16 px-6 md:px-12 lg:px-24"
+      className="py-16 px-6 md:px-12 lg:px-24 bg-gray-50 dark:bg-gray-800"
       style={{ backgroundColor: `${primaryColor}05` }}
     >
       <div className="max-w-6xl mx-auto">
@@ -70,12 +70,12 @@ export function InvitationGiftPreview({
           className="text-center mb-12"
         >
           <h2 
-            className="text-3xl md:text-4xl font-bold mb-4"
+            className="text-3xl md:text-4xl font-bold mb-4 dark:text-white"
             style={{ color: primaryColor }}
           >
             🎁 Lista de regalos
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Ayúdanos a hacer realidad estos regalos. Confirma tu asistencia para elegir el tuyo.
           </p>
         </motion.div>
@@ -97,7 +97,7 @@ export function InvitationGiftPreview({
                 key={category}
                 variants={itemVariants}
                 whileHover={{ y: -5 }}
-                className="bg-white rounded-2xl p-6 shadow-lg border-2 transition-shadow hover:shadow-xl"
+                className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border-2 dark:border-gray-700 transition-shadow hover:shadow-xl"
                 style={{ borderColor: `${accentColor}30` }}
               >
                 {/* Icono */}
@@ -110,7 +110,7 @@ export function InvitationGiftPreview({
 
                 {/* Nombre de categoría */}
                 <h3 
-                  className="text-xl font-semibold text-center mb-3 capitalize"
+                  className="text-xl font-semibold text-center mb-3 capitalize dark:text-white"
                   style={{ color: primaryColor }}
                 >
                   {category}
@@ -118,13 +118,13 @@ export function InvitationGiftPreview({
 
                 {/* Estadísticas */}
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm text-gray-600">
+                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                     <span>Disponibles:</span>
                     <span className="font-semibold">{available} de {total}</span>
                   </div>
 
                   {/* Barra de progreso */}
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       whileInView={{ width: `${percentage}%` }}
@@ -138,7 +138,7 @@ export function InvitationGiftPreview({
 
                 {/* Estado */}
                 {available === 0 ? (
-                  <p className="text-sm text-gray-500 text-center mt-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-3">
                     ✓ Completado
                   </p>
                 ) : (
@@ -162,7 +162,7 @@ export function InvitationGiftPreview({
           transition={{ delay: 0.5 }}
           className="mt-10 text-center"
         >
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             💡 Podrás ver y elegir regalos específicos después de confirmar tu asistencia
           </p>
         </motion.div>

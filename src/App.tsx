@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuthStore } from './stores/auth.store';
+import { useThemeStore } from './stores/theme.store';
 import { routeConfig } from './routes/routes.config';
 import { NotificationCenter } from './components/NotificationCenter';
 import { SyncStatusIndicator } from './components/SyncStatusIndicator';
@@ -11,6 +12,12 @@ const router = createBrowserRouter(routeConfig);
 
 function App() {
   const { initializeAuthListener, loading } = useAuthStore();
+  const { initializeTheme } = useThemeStore();
+
+  // Inicializar tema
+  useEffect(() => {
+    initializeTheme();
+  }, [initializeTheme]);
 
   // Inicializar listener de autenticación al montar el componente
   useEffect(() => {

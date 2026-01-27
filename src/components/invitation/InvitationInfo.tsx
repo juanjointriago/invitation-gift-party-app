@@ -58,19 +58,19 @@ export function InvitationInfo({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
-      className="py-16 px-6 md:px-12 lg:px-24 bg-white"
+      className="py-16 px-6 md:px-12 lg:px-24 bg-white dark:bg-gray-900"
     >
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Welcome titles */}
         <motion.div variants={itemVariants} className="text-center space-y-4">
           <h2 
-            className="text-4xl md:text-5xl font-bold"
+            className="text-4xl md:text-5xl font-bold dark:text-white"
             style={{ color: primaryColor }}
           >
             {welcomeTitle}
           </h2>
           <p 
-            className="text-xl md:text-2xl font-light"
+            className="text-xl md:text-2xl font-light dark:text-gray-300"
             style={{ color: secondaryColor }}
           >
             {welcomeSubtitle}
@@ -80,7 +80,7 @@ export function InvitationInfo({
         {/* Description */}
         {description && (
           <motion.div variants={itemVariants} className="text-center">
-            <p className="text-lg text-gray-700 leading-relaxed">
+            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
               {description}
             </p>
           </motion.div>
@@ -94,7 +94,7 @@ export function InvitationInfo({
           {/* Fecha y hora */}
           <motion.div
             variants={itemVariants}
-            className="p-6 rounded-2xl shadow-lg border border-gray-100"
+            className="p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
             style={{ borderColor: `${primaryColor}20` }}
           >
             <div className="flex items-start space-x-4">
@@ -106,12 +106,12 @@ export function InvitationInfo({
               </div>
               <div className="flex-1">
                 <h3 
-                  className="font-semibold text-lg mb-1"
+                  className="font-semibold text-lg mb-1 dark:text-white"
                   style={{ color: primaryColor }}
                 >
                   Fecha y hora
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {new Date(date).toLocaleDateString('es-ES', {
                     weekday: 'long',
                     day: 'numeric',
@@ -120,7 +120,7 @@ export function InvitationInfo({
                   })}
                 </p>
                 {formatTime(date) && (
-                  <p className="text-gray-500 text-sm mt-1">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
                     {formatTime(date)}
                   </p>
                 )}
@@ -131,7 +131,7 @@ export function InvitationInfo({
           {/* Ubicación */}
           <motion.div
             variants={itemVariants}
-            className="p-6 rounded-2xl shadow-lg border border-gray-100"
+            className="p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
             style={{ borderColor: `${secondaryColor}20` }}
           >
             <div className="flex items-start space-x-4">
@@ -143,12 +143,12 @@ export function InvitationInfo({
               </div>
               <div className="flex-1">
                 <h3 
-                  className="font-semibold text-lg mb-1"
+                  className="font-semibold text-lg mb-1 dark:text-white"
                   style={{ color: secondaryColor }}
                 >
                   Ubicación
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-gray-300">
                   {location}
                 </p>
               </div>
@@ -160,10 +160,10 @@ export function InvitationInfo({
         {extraInfo && (
           <motion.div 
             variants={itemVariants}
-            className="p-6 rounded-2xl text-center"
+            className="p-6 rounded-2xl text-center bg-gray-50 dark:bg-gray-800"
             style={{ backgroundColor: `${primaryColor}08` }}
           >
-            <p className="text-gray-700 italic">
+            <p className="text-gray-700 dark:text-gray-300 italic">
               {extraInfo}
             </p>
           </motion.div>

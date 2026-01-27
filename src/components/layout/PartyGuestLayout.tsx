@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { usePartyContextStore } from '../../stores/partyContext.store';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 /**
  * Layout para páginas del invitado en una fiesta
@@ -42,10 +43,13 @@ export const PartyGuestLayout: React.FC = () => {
               {mounted && currentParty?.title ? currentParty.title : 'Mi Fiesta'}
             </h1>
           </div>
-          <div className="text-sm text-text-muted">
-            {mounted && currentParty?.status === 'published' && (
-              <span className="text-success">✓ Fiesta Activa</span>
-            )}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <div className="text-sm text-text-muted">
+              {mounted && currentParty?.status === 'published' && (
+                <span className="text-success">✓ Fiesta Activa</span>
+              )}
+            </div>
           </div>
         </div>
       </header>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { Button } from '../ui/button';
+import { ThemeToggle } from '../ui/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +51,9 @@ export const MainLayout: React.FC = () => {
             )}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

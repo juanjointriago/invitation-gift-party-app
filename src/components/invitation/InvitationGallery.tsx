@@ -34,7 +34,7 @@ export function InvitationGallery({ images, primaryColor }: InvitationGalleryPro
 
   return (
     <>
-      <section className="py-16 px-6 md:px-12 lg:px-24 bg-gray-50">
+      <section className="py-16 px-6 md:px-12 lg:px-24 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-6xl mx-auto">
           {/* Título */}
           <motion.div
@@ -44,12 +44,12 @@ export function InvitationGallery({ images, primaryColor }: InvitationGalleryPro
             className="text-center mb-12"
           >
             <h2 
-              className="text-3xl md:text-4xl font-bold mb-2"
+              className="text-3xl md:text-4xl font-bold mb-2 dark:text-white"
               style={{ color: primaryColor }}
             >
               Galería de momentos
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               Un vistazo a lo que nos espera
             </p>
           </motion.div>
@@ -96,7 +96,7 @@ export function InvitationGallery({ images, primaryColor }: InvitationGalleryPro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/90 dark:bg-black/95 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
           <motion.div
