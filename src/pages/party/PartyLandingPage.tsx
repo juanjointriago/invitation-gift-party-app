@@ -204,7 +204,7 @@ export const PartyLandingPage: React.FC = () => {
                 initial="hidden"
                 animate="visible"
               >
-                {!isNewGuest && (
+                {!user && (
                   <>
                     <motion.div variants={itemVariants} className="flex-1">
                       <Button
@@ -232,7 +232,7 @@ export const PartyLandingPage: React.FC = () => {
                     </motion.div>
                   </>
                 )}
-                {isNewGuest && (
+                {user && (
                   <motion.div variants={itemVariants} className="flex-1">
                     <Button
                       size="lg"
@@ -246,7 +246,7 @@ export const PartyLandingPage: React.FC = () => {
                     </Button>
                   </motion.div>
                 )}
-                {isNewGuest && (
+                {user && (
                   <motion.div variants={itemVariants} className="flex-1">
                     <Button
                       size="lg"
