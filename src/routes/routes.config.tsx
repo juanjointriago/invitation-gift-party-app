@@ -29,6 +29,7 @@ const CreatePartyPage = lazy(() => import('../pages/host/CreatePartyPage').then(
 const PartyResponsesPage = lazy(() => import('../pages/host/PartyResponsesPage').then((m) => ({ default: m.PartyResponsesPage })));
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })));
 const AdminPartiesPage = lazy(() => import('../pages/admin/AdminPartiesPage').then((m) => ({ default: m.AdminPartiesPage })));
+const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const PublicInvitation = lazy(() => import('../pages/public/PublicInvitation').then((m) => ({ default: m.PublicInvitation })));
 
@@ -171,7 +172,11 @@ export const routeConfig: RouteObject[] = [
       },
       {
         path: 'users',
-        // element: <AdminUsersPage />,
+        element: (
+          <ProtectedRoute requiredRoles={['administrator']}>
+            {withSuspense(<AdminUsersPage />)}
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'party/:partyUuid',

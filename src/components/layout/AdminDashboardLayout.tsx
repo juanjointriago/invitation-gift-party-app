@@ -93,7 +93,7 @@ export const AdminDashboardLayout: React.FC = () => {
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-text dark:text-gray-100 hover:text-primary dark:hover:text-purple-400 transition-colors"
           >
-            ☺
+            ☰
           </button>
           <div className="flex-1 flex items-center justify-end gap-4">
             <ThemeToggle />
