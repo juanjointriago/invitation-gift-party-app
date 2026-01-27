@@ -19,16 +19,16 @@ export const HostDashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-background dark:bg-gray-900">
+    <div className="min-h-screen flex bg-white dark:bg-zinc-800">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-white dark:bg-gray-800 border-r border-border dark:border-gray-700 transition-all duration-300 flex flex-col sticky top-0 h-screen`}
+        } bg-white dark:bg-zinc-700 border-r border-gray-200 dark:border-zinc-600 transition-all duration-300 flex flex-col sticky top-0 h-screen`}
       >
         {/* Logo */}
-        <div className="h-16 border-b border-border dark:border-gray-700 flex items-center justify-center p-4">
-          <h1 className={`${sidebarOpen ? 'text-lg' : 'text-xs'} font-bold text-primary dark:text-purple-400`}>
+        <div className="h-16 border-b border-gray-200 dark:border-zinc-600 flex items-center justify-center p-4">
+          <h1 className={`${sidebarOpen ? 'text-lg' : 'text-xs'} font-bold text-purple-600 dark:text-purple-400`}>
             {sidebarOpen ? '🎉 PartyGifts' : '🎉'}
           </h1>
         </div>
@@ -37,29 +37,29 @@ export const HostDashboardLayout: React.FC = () => {
         <nav className="flex-1 p-4 space-y-2">
           <Link
             to="/host"
-            className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-primary/10 dark:hover:bg-purple-900/30 transition-colors ${
+            className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-purple-50 dark:hover:bg-zinc-600 transition-colors ${
               sidebarOpen ? '' : 'justify-center'
             }`}
           >
             <span className="text-xl">📊</span>
-            {sidebarOpen && <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Dashboard</span>}
+            {sidebarOpen && <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Dashboard</span>}
           </Link>
           <Link
             to="/host/create"
-            className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-primary/10 dark:hover:bg-purple-900/30 transition-colors ${
+            className={`flex items-center gap-3 px-4 py-2 rounded-md hover:bg-purple-50 dark:hover:bg-zinc-600 transition-colors ${
               sidebarOpen ? '' : 'justify-center'
             }`}
           >
             <span className="text-xl">➕</span>
-            {sidebarOpen && <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Nueva Fiesta</span>}
+            {sidebarOpen && <span className="text-sm font-medium text-gray-900 dark:text-zinc-100">Nueva Fiesta</span>}
           </Link>
         </nav>
 
         {/* User Info */}
-        <div className="p-4 border-t border-border dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200 dark:border-zinc-600">
           {sidebarOpen ? (
-            <div className="text-xs text-text-muted dark:text-gray-400 mb-3">
-              <p className="font-medium text-text dark:text-gray-100 truncate">{user?.name}</p>
+            <div className="text-xs text-gray-600 dark:text-zinc-300 mb-3">
+              <p className="font-medium text-gray-900 dark:text-zinc-100 truncate">{user?.name}</p>
               <p className="truncate">{user?.email}</p>
             </div>
           ) : null}
@@ -78,21 +78,21 @@ export const HostDashboardLayout: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="h-16 border-b border-border dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center px-6 shadow-sm">
+        <header className="h-16 border-b border-gray-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 flex items-center px-6 shadow-sm">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-text dark:text-gray-100 hover:text-primary dark:hover:text-purple-400 transition-colors"
+            className="text-gray-700 dark:text-zinc-100 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
           >
             ☰
           </button>
           <div className="flex-1 flex items-center justify-end gap-4">
             <ThemeToggle />
-            <span className="text-sm text-text-muted dark:text-gray-400">{user?.name}</span>
+            <span className="text-sm text-gray-600 dark:text-zinc-300">{user?.name}</span>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+        <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-zinc-800">
           <Outlet />
         </main>
       </div>

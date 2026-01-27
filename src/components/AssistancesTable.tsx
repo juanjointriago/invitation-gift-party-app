@@ -12,13 +12,15 @@ import {
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import type { PartyAssistanceGift } from '../types/party';
+import type { IUser } from '../interfaces/users.interface';
 
 interface AssistancesTableProps {
   data: PartyAssistanceGift[];
+  usersMap?: Map<string, IUser>;
   isLoading?: boolean;
 }
 
-export const AssistancesTable: React.FC<AssistancesTableProps> = ({ data, isLoading = false }) => {
+export const AssistancesTable: React.FC<AssistancesTableProps> = ({ data, usersMap, isLoading = false }) => {
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true }, // Ordenar por fecha descendente por defecto
   ]);
@@ -31,11 +33,41 @@ export const AssistancesTable: React.FC<AssistancesTableProps> = ({ data, isLoad
     () => [
       columnHelper.accessor('guest_user_id', {
         header: 'Invitado',
-        cell: (info) => (
-          <div className="truncate">
-            <p className="font-medium text-text">{info.getValue()}</p>
-          </div>
-        ),
+        cell: (info) => {
+          const userId = info.getValue();
+          const user = usersMap?.get(userId);
+          return (
+            <div className="truncate">
+              {user ? (
+                <>
+                  <p className="font-medium text-gray-900 dark:text-zinc-100">
+                    {user.name} {user.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    {user.phone || user.email}
+                  </p>
+                </>
+              ) : (
+                <p className="font-medium text-gray-500 dark:text-zinc-400 text-xs">{userId}</p>
+              )}
+            </div>
+          );
+        },
+        filterFn: (row, columnId, filterValue) => {
+          const userId = row.getValue(columnId) as string;
+          const user = usersMap?.get(userId);
+          const searchTerm = filterValue.toLowerCase();
+          
+          if (user) {
+            return (
+              user.name.toLowerCase().includes(searchTerm) ||
+              user.lastName.toLowerCase().includes(searchTerm) ||
+              user.email.toLowerCase().includes(searchTerm) ||
+              user.phone?.toLowerCase().includes(searchTerm) || false
+            );
+          }
+          return userId.toLowerCase().includes(searchTerm);
+        },
       }),
       columnHelper.accessor('selectedGiftNameSnapshot', {
         header: 'Regalo Seleccionado',

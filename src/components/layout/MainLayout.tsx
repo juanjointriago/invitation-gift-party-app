@@ -58,14 +58,14 @@ export const MainLayout: React.FC = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary dark:bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full bg-purple-600 dark:bg-purple-500 text-white flex items-center justify-center text-sm font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                     </div>
-                    <span className="hidden sm:inline text-sm text-text dark:text-gray-200">{user.name || user.email}</span>
+                    <span className="hidden sm:inline text-sm text-gray-700 dark:text-gray-200">{user.name || user.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem disabled className="text-xs text-text-muted">
+                  <DropdownMenuItem disabled className="text-xs text-gray-500 dark:text-zinc-400">
                     {user.email}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -76,7 +76,7 @@ export const MainLayout: React.FC = () => {
                     Cambiar Contraseña
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
                     Cerrar Sesión
                   </DropdownMenuItem>
                 </DropdownMenuContent>

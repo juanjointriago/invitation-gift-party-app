@@ -6,7 +6,9 @@ import { Input } from '../../components/ui/input';
 import { PartyShareButton } from '../../components/PartyShareButton';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { PartyAssistanceService } from '../../services/party-assistance.service';
+import { useUsersStore } from '../../stores/users.store';
 import type { PartyAssistanceGift } from '../../types/party';
+import type { IUser } from '../../interfaces/users.interface';
 import { motion } from 'framer-motion';
 import {
   useReactTable,
@@ -38,10 +40,12 @@ export const PartyDetailPage: React.FC = () => {
 
   const { fullParty, error: partyError } = usePartyLoader(p_uuid);
   const [assistances, setAssistances] = useState<PartyAssistanceGift[]>([]);
+  const [usersMap, setUsersMap] = useState<Map<string, IUser>>(new Map());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sorting, setSorting] = useState<SortingState>([]);
+  const { getUsersByIds } = useUsersStore();
 
   useEffect(() => {
     if (!p_uuid || !fullParty) return;
@@ -52,7 +56,20 @@ export const PartyDetailPage: React.FC = () => {
       try {
         const data = await PartyAssistanceService.getAssistancesByParty(p_uuid);
         setAssistances(data);
+        
+        // Cargar información de usuarios desde el store
+        const userIds = [...new Set(data.map(a => a.guest_user_id))];
+        console.log('🔍 User IDs to load:', userIds);
+        if (userIds.length > 0) {
+          const users = await getUsersByIds(userIds);
+          console.log('👥 Users loaded:', users.size, 'users');
+          users.forEach((user, id) => {
+            console.log(`  - ${id}: ${user.name} ${user.lastName}`);
+          });
+          setUsersMap(users);
+        }
       } catch (err) {
+        console.error('❌ Error loading assistances:', err);
         setError('Error cargando asistencias. Intenta de nuevo.');
       } finally {
         setLoading(false);
@@ -60,7 +77,7 @@ export const PartyDetailPage: React.FC = () => {
     };
 
     loadAssistances();
-  }, [p_uuid, fullParty]);
+  }, [p_uuid, fullParty, getUsersByIds]);
 
   // Calculate gift popularity
   const giftCounts: Record<string, number> = {};
@@ -83,12 +100,17 @@ export const PartyDetailPage: React.FC = () => {
   const filteredAssistances = useMemo(() => {
     if (!searchTerm) return assistances;
     const term = searchTerm.toLowerCase();
-    return assistances.filter(
-      (a) =>
+    return assistances.filter((a) => {
+      const user = usersMap.get(a.guest_user_id);
+      return (
         a.guest_user_id?.toLowerCase().includes(term) ||
-        a.selectedGiftNameSnapshot?.toLowerCase().includes(term)
-    );
-  }, [assistances, searchTerm]);
+        a.selectedGiftNameSnapshot?.toLowerCase().includes(term) ||
+        user?.name?.toLowerCase().includes(term) ||
+        user?.lastName?.toLowerCase().includes(term) ||
+        user?.email?.toLowerCase().includes(term)
+      );
+    });
+  }, [assistances, searchTerm, usersMap]);
 
   // Table columns
   const columns = useMemo<ColumnDef<PartyAssistanceGift>[]>(
@@ -96,12 +118,27 @@ export const PartyDetailPage: React.FC = () => {
       {
         accessorKey: 'guest_user_id',
         header: 'Invitado',
-        cell: (info) => (
-          <div className="flex flex-col">
-            <span className="font-medium text-text">{info.getValue() as string}</span>
-            <span className="text-xs text-text-muted">ID: {info.getValue() as string}</span>
-          </div>
-        ),
+        cell: (info) => {
+          const userId = info.getValue() as string;
+          const user = usersMap.get(userId);
+          console.log(`🎯 Rendering user ${userId}:`, user ? `${user.name} ${user.lastName}` : 'NOT FOUND');
+          return (
+            <div className="flex flex-col">
+              {user ? (
+                <>
+                  <p className="font-medium text-gray-900 dark:text-zinc-100">
+                    {user.name} {user.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400">
+                    {user.phone || user.email}
+                  </p>
+                </>
+              ) : (
+                <p className="font-medium text-gray-500 dark:text-zinc-400 text-xs">{userId}</p>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'selectedGiftNameSnapshot',
@@ -140,7 +177,7 @@ export const PartyDetailPage: React.FC = () => {
         },
       },
     ],
-    [fullParty]
+    [fullParty, usersMap]
   );
 
   const table = useReactTable({
@@ -161,13 +198,15 @@ export const PartyDetailPage: React.FC = () => {
   const handleExportCSV = () => {
     if (assistances.length === 0) return;
 
-    const headers = ['ID Invitado', 'Regalo', 'Preguntas Respondidas', 'Fecha Confirmación'];
+    const headers = ['Nombre', 'Email', 'Regalo', 'Preguntas Respondidas', 'Fecha Confirmación'];
     const rows = assistances.map((a) => {
+      const user = usersMap.get(a.guest_user_id);
       const date = a.createdAt
         ? new Date(a.createdAt).toLocaleDateString('es-ES')
         : '-';
       return [
-        a.guest_user_id || '',
+        user ? `${user.name} ${user.lastName}` : a.guest_user_id || '',
+        user?.email || '',
         a.selectedGiftNameSnapshot || '',
         `${a.answersToQuestions?.length || 0} / ${fullParty?.questions?.length || 0}`,
         date,

@@ -77,7 +77,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
 
   return (
     <div
-      className={`absolute top-full ${alignClass} mt-2 bg-white border border-border rounded-lg shadow-lg py-2 z-50 min-w-[200px] ${className}`}
+      className={`absolute top-full ${alignClass} mt-2 bg-white dark:bg-zinc-700 border border-gray-200 dark:border-zinc-600 rounded-lg shadow-lg dark:shadow-zinc-900/50 py-2 z-50 min-w-[200px] ${className}`}
     >
       {children}
     </div>
@@ -110,7 +110,7 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
     <button
       onClick={handleClick}
       disabled={disabled}
-      className={`w-full text-left px-4 py-2 hover:bg-background transition-colors text-sm ${
+      className={`w-full text-left px-4 py-2 text-gray-700 dark:text-zinc-100 hover:bg-purple-50 dark:hover:bg-zinc-600 transition-colors text-sm ${
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       } ${className}`}
     >
@@ -120,5 +120,5 @@ export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({
 };
 
 export const DropdownMenuSeparator: React.FC = () => (
-  <div className="my-1 border-t border-border" />
+  <div className="my-1 border-t border-gray-200 dark:border-zinc-600" />
 );

@@ -5,7 +5,9 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { PartyAssistanceService } from '../../services/party-assistance.service';
+import { useUsersStore } from '../../stores/users.store';
 import type { PartyAssistanceGift, Question } from '../../types/party';
+import type { IUser } from '../../interfaces/users.interface';
 import { motion } from 'framer-motion';
 import {
   useReactTable,
@@ -37,12 +39,14 @@ export const PartyResponsesPage: React.FC = () => {
 
   const { fullParty } = usePartyLoader(p_uuid);
   const [assistances, setAssistances] = useState<PartyAssistanceGift[]>([]);
+  const [usersMap, setUsersMap] = useState<Map<string, IUser>>(new Map());
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGift, setSelectedGift] = useState<string>('all');
   const [selectedQuestion, setSelectedQuestion] = useState<string>('all');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [sorting, setSorting] = useState<SortingState>([]);
+  const { getUsersByIds } = useUsersStore();
 
   useEffect(() => {
     if (!p_uuid) return;
@@ -52,6 +56,13 @@ export const PartyResponsesPage: React.FC = () => {
       try {
         const data = await PartyAssistanceService.getAssistancesByParty(p_uuid);
         setAssistances(data);
+        
+        // Cargar información de usuarios desde el store
+        const userIds = [...new Set(data.map(a => a.guest_user_id))];
+        if (userIds.length > 0) {
+          const users = await getUsersByIds(userIds);
+          setUsersMap(users);
+        }
       } catch (error) {
         console.error('Error loading assistances:', error);
       } finally {
@@ -60,7 +71,7 @@ export const PartyResponsesPage: React.FC = () => {
     };
 
     loadAssistances();
-  }, [p_uuid]);
+  }, [p_uuid, getUsersByIds]);
 
   const getResponsesForQuestion = (question: Question) => {
     const responses: Record<string, number> = {};
@@ -93,11 +104,16 @@ export const PartyResponsesPage: React.FC = () => {
     // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (a) =>
+      filtered = filtered.filter((a) => {
+        const user = usersMap.get(a.guest_user_id);
+        return (
           a.guest_user_id?.toLowerCase().includes(term) ||
-          a.selectedGiftNameSnapshot?.toLowerCase().includes(term)
-      );
+          a.selectedGiftNameSnapshot?.toLowerCase().includes(term) ||
+          user?.name?.toLowerCase().includes(term) ||
+          user?.lastName?.toLowerCase().includes(term) ||
+          user?.email?.toLowerCase().includes(term)
+        );
+      });
     }
 
     // Gift filter
@@ -151,7 +167,22 @@ export const PartyResponsesPage: React.FC = () => {
       {
         accessorKey: 'guest_user_id',
         header: 'Invitado',
-        cell: (info) => <span className="font-medium text-text">{info.getValue() as string}</span>,
+        cell: (info) => {
+          const userId = info.getValue() as string;
+          const user = usersMap.get(userId);
+          return user ? (
+            <div>
+              <p className="font-medium text-gray-900 dark:text-zinc-100">
+                {user.name} {user.lastName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
+                {user.phone || user.email}
+              </p>
+            </div>
+          ) : (
+            <span className="font-medium text-gray-500 dark:text-zinc-400 text-xs">{userId}</span>
+          );
+        },
       },
       {
         accessorKey: 'selectedGiftNameSnapshot',
@@ -213,6 +244,10 @@ export const PartyResponsesPage: React.FC = () => {
   const handleExportIndividualCSV = (assistance: PartyAssistanceGift) => {
     if (!fullParty) return;
 
+    const user = usersMap.get(assistance.guest_user_id);
+    const userName = user ? `${user.name} ${user.lastName}` : assistance.guest_user_id;
+    const userEmail = user?.email || '';
+
     const headers = ['Pregunta', 'Respuesta'];
     const rows: string[][] = [];
 
@@ -228,7 +263,8 @@ export const PartyResponsesPage: React.FC = () => {
     });
 
     const csvContent = [
-      ['Respuestas de:', assistance.guest_user_id],
+      ['Respuestas de:', userName],
+      ['Email:', userEmail],
       ['Regalo seleccionado:', assistance.selectedGiftNameSnapshot],
       ['Fecha confirmación:', new Date(assistance.createdAt || 0).toLocaleDateString('es-ES')],
       [],
@@ -241,7 +277,8 @@ export const PartyResponsesPage: React.FC = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `respuestas_${assistance.guest_user_id}_${new Date().toISOString().split('T')[0]}.csv`;
+    const fileName = user ? `respuestas_${user.name}_${user.lastName}` : `respuestas_${assistance.guest_user_id}`;
+    link.download = `${fileName}_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 
@@ -249,12 +286,14 @@ export const PartyResponsesPage: React.FC = () => {
     if (!fullParty) return;
 
     // Preparar headers
-    const headers = ['Invitado', 'Regalo Seleccionado', 'Fecha', ...(fullParty.questions?.map((q) => q.question) || [])];
+    const headers = ['Nombre', 'Email', 'Regalo Seleccionado', 'Fecha', ...(fullParty.questions?.map((q) => q.question) || [])];
 
     // Preparar rows
     const rows = filteredAssistances.map((a) => {
+      const user = usersMap.get(a.guest_user_id);
       const rowData: string[] = [
-        a.guest_user_id,
+        user ? `${user.name} ${user.lastName}` : a.guest_user_id,
+        user?.email || '',
         a.selectedGiftNameSnapshot,
         new Date(a.createdAt || 0).toLocaleDateString('es-ES'),
       ];
