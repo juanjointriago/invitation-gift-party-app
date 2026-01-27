@@ -106,7 +106,7 @@ export const PartyHomePage: React.FC = () => {
             alt="Portada de la fiesta"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent dark:from-black/85 dark:to-black/10 flex items-end">
             <div className="w-full p-8 text-white space-y-3">
               <h1 className="text-4xl font-bold">{party?.title}</h1>
               {currentUser && (

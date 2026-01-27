@@ -81,7 +81,7 @@ export const PartyLandingPage: React.FC = () => {
 
   if (error && !fullParty) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-error/5 via-background to-accent/5 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-error/5 via-background to-accent/5 dark:from-gray-900 dark:via-gray-800 dark:to-red-950/30 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -125,7 +125,7 @@ export const PartyLandingPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-accent/5">
+    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-accent/5 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950/30">
       <div className="container-app py-10">
         <motion.div
           className="grid md:grid-cols-2 gap-8 items-center"
@@ -306,7 +306,7 @@ export const PartyLandingPage: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent dark:from-black/60 dark:to-transparent" />
                 </div>
 
                 {/* Info Card */}

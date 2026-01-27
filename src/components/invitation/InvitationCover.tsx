@@ -70,10 +70,7 @@ export function InvitationCover({
 
       {/* Overlay degradado */}
       <div 
-        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70"
-        style={{
-          background: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6))`,
-        }}
+        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70 dark:from-black/60 dark:via-black/70 dark:to-black/85"
       />
 
       {/* Contenido */}

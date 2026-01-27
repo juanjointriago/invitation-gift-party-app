@@ -27,25 +27,25 @@ export const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background dark:bg-gray-900">
       {/* Navbar */}
-      <header className="sticky top-0 z-40 w-full border-b border-border bg-white shadow-sm">
+      <header className="sticky top-0 z-40 w-full border-b border-border dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         <div className="container-app h-16 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <h1 className="text-2xl font-bold text-primary">🎉 PartyGifts</h1>
+            <h1 className="text-2xl font-bold text-primary dark:text-purple-400">🎉 PartyGifts</h1>
           </a>
           
           <nav className="hidden md:flex items-center gap-6">
-            <a href="/" className="text-text hover:text-primary transition-colors">
+            <a href="/" className="text-text dark:text-gray-200 hover:text-primary dark:hover:text-purple-400 transition-colors">
               Inicio
             </a>
             {user?.role === 'anfitrion' && (
-              <a href="/host" className="text-text hover:text-primary transition-colors">
+              <a href="/host" className="text-text dark:text-gray-200 hover:text-primary dark:hover:text-purple-400 transition-colors">
                 Mis Fiestas
               </a>
             )}
             {user?.role === 'administrator' && (
-              <a href="/admin/dashboard" className="text-text hover:text-primary transition-colors">
+              <a href="/admin/dashboard" className="text-text dark:text-gray-200 hover:text-primary dark:hover:text-purple-400 transition-colors">
                 Admin
               </a>
             )}
@@ -58,10 +58,10 @@ export const MainLayout: React.FC = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full bg-primary dark:bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                     </div>
-                    <span className="hidden sm:inline text-sm text-text">{user.name || user.email}</span>
+                    <span className="hidden sm:inline text-sm text-text dark:text-gray-200">{user.name || user.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">

@@ -116,7 +116,7 @@ export function PublicInvitationActions({ party_uuid, partyStatus }: PublicInvit
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
+      <Card className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50">
         <CardBody className="space-y-4">
           <div className="flex items-start space-x-3">
             <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-2xl flex-shrink-0">

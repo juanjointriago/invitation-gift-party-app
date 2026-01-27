@@ -11,7 +11,7 @@ export const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 dark:from-gray-900 dark:to-purple-950/30">
       {/* Hero */}
       <section className="container-app py-20 text-center">
         <motion.div

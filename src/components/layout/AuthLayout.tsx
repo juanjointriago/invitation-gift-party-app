@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
  */
 export const AuthLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 p-4 pb-24 sm:pb-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5 dark:from-gray-900 dark:to-purple-950/30 p-4 pb-24 sm:pb-8">
       {/* Logo/Brand */}
       <motion.div 
         className="mb-8 text-center"

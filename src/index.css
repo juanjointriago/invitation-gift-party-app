@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #8b5cf6;
+  --color-secondary: #a855f7;
+  --color-accent: #ec4899;
+}
+
 /* ============================================
    SISTEMA DE VARIABLES DE TEMA GLOBAL
    ============================================ */
