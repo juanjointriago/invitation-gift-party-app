@@ -27,7 +27,12 @@ export const AuthLayout: React.FC = () => {
 
       {/* Footer */}
       <footer className="mt-8 sm:mt-12 text-center text-text-muted text-xs sm:text-sm px-4">
-        <p>&copy; 2026 PartyGifts. Todos los derechos reservados.</p>
+        <p>&copy; 2026 PartyGifts - Tool by Purple-Widget. All rights reserved.</p>
+        <p className="mt-1 text-xs">
+          <a href="https://purple-widget.com/" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">purple-widget.com</a>
+          {' | '}
+          <a href="tel:+593987357965" className="hover:text-purple-600">+593 98 735 7965</a>
+        </p>
       </footer>
     </div>
   );

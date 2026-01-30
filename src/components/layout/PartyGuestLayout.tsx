@@ -136,7 +136,12 @@ export const PartyGuestLayout: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-gray-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 py-6">
         <div className="container-app text-center text-gray-600 dark:text-zinc-400 text-sm">
-          <p>&copy; 2026 PartyGifts. Todos los derechos reservados.</p>
+          <p>&copy; 2026 PartyGifts - Tool by Purple-Widget. All rights reserved.</p>
+          <p className="mt-1 text-xs">
+            <a href="https://purple-widget.com/" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600 dark:hover:text-purple-300">purple-widget.com</a>
+            {' | '}
+            <a href="tel:+593987357965" className="hover:text-purple-600 dark:hover:text-purple-300">+593 98 735 7965</a>
+          </p>
         </div>
       </footer>
     </div>

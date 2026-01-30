@@ -98,7 +98,12 @@ export const MainLayout: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-border bg-white py-8">
         <div className="container-app text-center text-text-muted text-sm">
-          <p>&copy; 2026 PartyGifts. Todos los derechos reservados.</p>
+          <p>&copy; 2026 PartyGifts - Tool by Purple-Widget. All rights reserved.</p>
+          <p className="mt-1 text-xs">
+            <a href="https://purple-widget.com/" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600">purple-widget.com</a>
+            {' | '}
+            <a href="tel:+593987357965" className="hover:text-purple-600">+593 98 735 7965</a>
+          </p>
         </div>
       </footer>
     </div>
