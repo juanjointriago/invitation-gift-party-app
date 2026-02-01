@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { isMapUrl, generateMapLinks } from '../../utils/map.utils';
 
 interface InvitationInfoProps {
   welcomeTitle: string;
@@ -32,6 +33,10 @@ export function InvitationInfo({
       return '';
     }
   };
+
+  // Detectar si la ubicación es una URL de mapa
+  const isMap = isMapUrl(location);
+  const mapLinks = isMap ? generateMapLinks(location) : null;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -141,16 +146,52 @@ export function InvitationInfo({
               >
                 📍
               </div>
-              <div className="flex-1">
+              <div className="flex-1 space-y-3">
                 <h3 
                   className="font-semibold text-lg mb-1 dark:text-white"
                   style={{ color: secondaryColor }}
                 >
                   Ubicación
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {location}
-                </p>
+                
+                {/* Si es una URL de mapa, mostrar botones de navegación */}
+                {isMap && mapLinks ? (
+                  <>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                      Cómo llegar:
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      {/* Botón de Google Maps */}
+                      <a
+                        href={mapLinks.googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                        style={{ backgroundColor: '#4285F4' }}
+                      >
+                        <span className="text-lg">🗺️</span>
+                        <span>Abrir en Google Maps</span>
+                      </a>
+                      
+                      {/* Botón de Waze */}
+                      <a
+                        href={mapLinks.wazeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                        style={{ backgroundColor: '#33CCFF' }}
+                      >
+                        <span className="text-lg">🚗</span>
+                        <span>Abrir en Waze</span>
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  // Si no es una URL de mapa, mostrar el texto de ubicación normal
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {location}
+                  </p>
+                )}
               </div>
             </div>
           </motion.div>

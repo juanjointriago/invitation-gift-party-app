@@ -111,9 +111,9 @@ export const PartyQuestionsPage: React.FC = () => {
 
       setHasSubmitted(true);
       
-      // Redirigir después de un breve delay para que vea el mensaje
+      // Redirigir a la lista de regalos después de un breve delay
       setTimeout(() => {
-        navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`);
+        navigate(`/party/${p_uuid}/gifts?p_uuid=${p_uuid}`);
       }, 1500);
     } catch (err) {
       console.error('Error al guardar respuestas:', err);
@@ -124,8 +124,8 @@ export const PartyQuestionsPage: React.FC = () => {
   };
 
   const handleSkip = () => {
-    toast.info('Puedes responder más tarde');
-    navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`);
+    toast.info('Continuando a la lista de regalos');
+    navigate(`/party/${p_uuid}/gifts?p_uuid=${p_uuid}`);
   };
 
   return (
@@ -177,10 +177,10 @@ export const PartyQuestionsPage: React.FC = () => {
                 {hasSubmitted && (
                   <div className="pt-4 border-t border-border">
                     <Button
-                      onClick={() => navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`)}
+                      onClick={() => navigate(`/party/${p_uuid}/gifts?p_uuid=${p_uuid}`)}
                       fullWidth
                     >
-                      Volver al Home
+                      Ir a la lista de regalos
                     </Button>
                   </div>
                 )}

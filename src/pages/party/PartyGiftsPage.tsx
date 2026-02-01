@@ -46,6 +46,7 @@ export const PartyGiftsPage: React.FC = () => {
   const selectedGift = useSelectedGift();
   const selectedGiftId = selectedGift?.id;
   const answers = usePartyQuestionsStore((s) => s.answers);
+  const setAnswer = usePartyQuestionsStore((s) => s.setAnswer);
   const { user } = useAuthStore();
   const { fullParty, loading: partyLoading, error: partyError } = usePartyLoader(p_uuid);
   const [submitting, setSubmitting] = useState(false);
@@ -54,6 +55,29 @@ export const PartyGiftsPage: React.FC = () => {
   const [existingGiftName, setExistingGiftName] = useState<string>('');
   const [loadingAssistance, setLoadingAssistance] = useState(true);
   const submittedRef = useRef(false);
+
+  // Cargar respuestas del usuario desde la base de datos
+  useEffect(() => {
+    const loadUserAnswers = async () => {
+      if (!user?.id || !p_uuid || partyLoading) return;
+
+      try {
+        const assistance = await PartyAssistanceService.getAssistanceByGuest(p_uuid, user.id);
+        
+        if (assistance && assistance.answersToQuestions && assistance.answersToQuestions.length > 0) {
+          // Cargar respuestas en el store
+          assistance.answersToQuestions.forEach((answer) => {
+            setAnswer(answer.questionId, answer.answer, answer.questionTextSnapshot || '');
+          });
+          console.log('✅ Respuestas del usuario cargadas:', assistance.answersToQuestions.length);
+        }
+      } catch (error) {
+        console.error('Error loading user answers:', error);
+      }
+    };
+
+    loadUserAnswers();
+  }, [user?.id, p_uuid, partyLoading, setAnswer]);
 
   // Cargar regalo previamente seleccionado
   useEffect(() => {
@@ -105,10 +129,14 @@ export const PartyGiftsPage: React.FC = () => {
   }, [fullParty, gifts.length, navigate, p_uuid, partyLoading, selectedGiftId]);
 
   const handleSelectGift = (giftId: string) => {
+    // Solo prevenir cambios si ya confirmó el regalo anteriormente (hasSelectedGift)
+    // Permitir cambiar mientras está en modo selección antes de confirmar
     if (hasSelectedGift) {
-      toast.warning('Ya tienes un regalo seleccionado. No puedes cambiar tu elección.');
+      toast.warning('Ya has confirmado tu regalo anteriormente. No puedes cambiar tu elección.');
       return;
     }
+    
+    // Permitir cambiar de regalo mientras no se haya confirmado
     selectGift(giftId);
   };
 
@@ -274,7 +302,7 @@ export const PartyGiftsPage: React.FC = () => {
                   </motion.div>
                 )}
 
-                {selectedGift && (
+                {selectedGift && !hasSelectedGift && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -282,6 +310,9 @@ export const PartyGiftsPage: React.FC = () => {
                   >
                     <p className="font-semibold text-primary">
                       Seleccionaste: <span>{selectedGift.name}</span>
+                    </p>
+                    <p className="text-xs text-primary/70 mt-1">
+                      Puedes cambiar tu selección antes de confirmar
                     </p>
                   </motion.div>
                 )}
@@ -312,6 +343,20 @@ export const PartyGiftsPage: React.FC = () => {
               }}>
                 Cancelar
               </Button>
+              
+              {selectedGift && (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    clearSelection();
+                    toast.info('Selección limpiada. Elige otro regalo.');
+                  }}
+                  className="text-accent hover:text-accent/80"
+                >
+                  🔄 Cambiar selección
+                </Button>
+              )}
+              
               <Button
                 variant="primary"
                 onClick={handleConfirm}

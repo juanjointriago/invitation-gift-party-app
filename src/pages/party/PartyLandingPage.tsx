@@ -10,6 +10,8 @@ import { useAuthStore } from '../../stores/auth.store';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { Calendar, MapPin, Gift, Sparkles, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { isMapUrl, generateMapLinks } from '../../utils/map.utils';
+import { AuthService } from '../../services/auth.service';
 
 export const PartyLandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export const PartyLandingPage: React.FC = () => {
   const setPartyUuid = usePartyContextStore((s) => s.setPartyUuid);
   const setPartyData = usePartyContextStore((s) => s.setPartyData);
   const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
   const { fullParty, loading, error } = usePartyLoader(p_uuid);
 
   // Guardar en contexto cuando se carga la fiesta
@@ -52,6 +55,28 @@ export const PartyLandingPage: React.FC = () => {
 
   const goToAuth = (path: 'login' | 'register') => {
     navigate(`/auth/${path}?p_uuid=${p_uuid}`);
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      toast.loading('Iniciando sesión con Google...');
+      const result = await AuthService.googleSignUpLogin();
+      
+      toast.dismiss();
+      
+      if (result.isAuthenticated && result.user) {
+        setUser(result.user);
+        toast.success(`¡Bienvenido ${result.user.name}!`);
+        // Redirigir a las preguntas de la fiesta
+        navigate(`/party/${p_uuid}/questions?p_uuid=${p_uuid}&new=true`);
+      } else {
+        toast.error(result.message || 'No se pudo iniciar sesión con Google');
+      }
+    } catch (error) {
+      toast.dismiss();
+      console.error('Error al iniciar sesión con Google:', error);
+      toast.error('Error al iniciar sesión con Google');
+    }
   };
 
   const cover =
@@ -169,10 +194,48 @@ export const PartyLandingPage: React.FC = () => {
                 </div>
               )}
               {party?.location && (
-                <div className="flex items-center gap-3 text-text">
-                  <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
-                  <span>{party.location}</span>
-                </div>
+                <>
+                  {isMapUrl(party.location) ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 text-text">
+                        <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+                        <span className="text-sm font-medium">Ubicación:</span>
+                      </div>
+                      {(() => {
+                        const mapLinks = generateMapLinks(party.location);
+                        return mapLinks ? (
+                          <div className="flex flex-wrap gap-2 pl-8">
+                            <a
+                              href={mapLinks.googleMapsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                              style={{ backgroundColor: '#4285F4' }}
+                            >
+                              <span>🗺️</span>
+                              <span>Google Maps</span>
+                            </a>
+                            <a
+                              href={mapLinks.wazeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                              style={{ backgroundColor: '#33CCFF' }}
+                            >
+                              <span>🚗</span>
+                              <span>Waze</span>
+                            </a>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 text-text">
+                      <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+                      <span>{party.location}</span>
+                    </div>
+                  )}
+                </>
               )}
               {party?.giftList && party.giftList.length > 0 && (
                 <div className="flex items-center gap-3 text-text">
@@ -232,36 +295,84 @@ export const PartyLandingPage: React.FC = () => {
                     </motion.div>
                   </>
                 )}
+
                 {user && (
-                  <motion.div variants={itemVariants} className="flex-1">
-                    <Button
-                      size="lg"
-                      variant="primary"
-                      onClick={() => navigate(`/party/${p_uuid}/questions`)}
-                      disabled={loading}
-                      fullWidth
-                      className="h-12 text-base font-semibold"
-                    >
-                      {loading ? 'Cargando...' : '📝 Responder Preguntas'}
-                    </Button>
-                  </motion.div>
-                )}
-                {user && (
-                  <motion.div variants={itemVariants} className="flex-1">
-                    <Button
-                      size="lg"
-                      variant="secondary"
-                      onClick={() => navigate(`/party/${p_uuid}/gifts`)}
-                      disabled={loading}
-                      fullWidth
-                      className="h-12 text-base font-semibold"
-                    >
-                      {loading ? 'Cargando...' : '🎁 Elegir Regalo'}
-                    </Button>
-                  </motion.div>
+                  <>
+                    <motion.div variants={itemVariants} className="flex-1">
+                      <Button
+                        size="lg"
+                        variant="primary"
+                        onClick={() => navigate(`/party/${p_uuid}/questions?p_uuid=${p_uuid}`)}
+                        disabled={loading}
+                        fullWidth
+                        className="h-12 text-base font-semibold"
+                      >
+                        {loading ? 'Cargando...' : '📝 Responder Preguntas'}
+                      </Button>
+                    </motion.div>
+                    <motion.div variants={itemVariants} className="flex-1">
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        onClick={() => navigate(`/party/${p_uuid}/gifts?p_uuid=${p_uuid}`)}
+                        disabled={loading}
+                        fullWidth
+                        className="h-12 text-base font-semibold"
+                      >
+                        {loading ? 'Cargando...' : '🎁 Elegir Regalo'}
+                      </Button>
+                    </motion.div>
+                  </>
                 )}
               </motion.div>
-              {!isNewGuest && (
+
+              {/* Botón de Google Sign In */}
+              {!user && (
+                <motion.div
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="relative"
+                >
+                  <div className="relative flex items-center justify-center">
+                    <div className="border-t border-gray-300 dark:border-gray-600 w-full absolute"></div>
+                    <span className="relative bg-white dark:bg-gray-900 px-4 text-sm text-gray-500 dark:text-gray-400">
+                      o continúa con
+                    </span>
+                  </div>
+                  
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    fullWidth
+                    className="h-12 text-base font-semibold mt-4 border-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      />
+                    </svg>
+                    Continuar con Google
+                  </Button>
+                </motion.div>
+              )}
+
+              {!user && !isNewGuest && (
                 <p className="text-xs text-text-muted text-center">
                   ¿Ya tienes cuenta? Inicia sesión para continuar
                 </p>

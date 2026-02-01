@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../../components/ui/button';
@@ -7,8 +7,9 @@ import { SkeletonLoader, CardSkeletonLoader } from '../../components/ui/skeleton
 import { usePartyContextStore } from '../../stores/partyContext.store';
 import { usePartyLoader } from '../../hooks/usePartyLoader';
 import { useAuthStore } from '../../stores/auth.store';
-import { Calendar, MapPin, Gift, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, Gift, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Party } from '../../types/party';
+import { isMapUrl, generateMapLinks } from '../../utils/map.utils';
 
 export const PartyHomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ export const PartyHomePage: React.FC = () => {
 
   const fullPartyTyped = fullParty as Party | null;
   const party = currentParty || fullPartyTyped;
+
+  // Estado para el progreso del scroll
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     if (party?.themeConfig) {
@@ -62,6 +66,47 @@ export const PartyHomePage: React.FC = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
   };
+
+  // Referencias para el scroll del carousel
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 400; // Cantidad de scroll en pixels
+      const newScrollLeft = direction === 'left' 
+        ? carouselRef.current.scrollLeft - scrollAmount
+        : carouselRef.current.scrollLeft + scrollAmount;
+      
+      carouselRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Actualizar progreso del scroll
+  const handleScroll = () => {
+    if (carouselRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      const maxScroll = scrollWidth - clientWidth;
+      const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+      setScrollProgress(progress);
+    }
+  };
+
+  // Agregar listener de scroll
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (carousel) {
+      carousel.addEventListener('scroll', handleScroll);
+      // Calcular progreso inicial
+      handleScroll();
+      
+      return () => {
+        carousel.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, [galleryImages.length]);
 
   if (loading) {
     return (
@@ -146,7 +191,41 @@ export const PartyHomePage: React.FC = () => {
                   <MapPin className="w-6 h-6 text-accent" />
                   <span className="font-semibold text-text">Ubicación</span>
                 </div>
-                <p className="text-sm text-text-muted">{party?.location || 'No definida'}</p>
+                {party?.location && isMapUrl(party.location) ? (
+                  <>
+                    {(() => {
+                      const mapLinks = generateMapLinks(party.location);
+                      return mapLinks ? (
+                        <div className="flex flex-col gap-2">
+                          <a
+                            href={mapLinks.googleMapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                            style={{ backgroundColor: '#4285F4' }}
+                          >
+                            <span>🗺️</span>
+                            <span>Abrir en Google Maps</span>
+                          </a>
+                          <a
+                            href={mapLinks.wazeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                            style={{ backgroundColor: '#33CCFF' }}
+                          >
+                            <span>🚗</span>
+                            <span>Abrir en Waze</span>
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-text-muted">{party.location}</p>
+                      );
+                    })()}
+                  </>
+                ) : (
+                  <p className="text-sm text-text-muted">{party?.location || 'No definida'}</p>
+                )}
               </CardBody>
             </Card>
           </motion.div>
@@ -189,28 +268,68 @@ export const PartyHomePage: React.FC = () => {
           <motion.div variants={itemVariants}>
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-text">Galería</h2>
-              <motion.div
-                className="grid md:grid-cols-3 gap-4"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                {galleryImages.slice(0, 3).map((img, idx) => (
-                  <motion.div
-                    key={idx}
-                    variants={itemVariants}
-                    className="group cursor-pointer"
-                  >
-                    <motion.img
-                      src={img}
-                      alt={`Galería ${idx + 1}`}
-                      className="w-full h-64 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
+              
+              {/* Carousel Container */}
+              <div className="relative group">
+                {/* Scroll Container */}
+                <div 
+                  ref={carouselRef}
+                  className="flex gap-4 overflow-x-auto overflow-y-hidden scroll-smooth scrollbar-hide pb-4"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  }}
+                >
+                  {galleryImages.map((img, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="flex-shrink-0 w-80 h-64 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                    >
+                      <img
+                        src={img}
+                        alt={`Galería ${idx + 1}`}
+                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Navigation Buttons - Only show if there are multiple images */}
+                {galleryImages.length > 2 && (
+                  <>
+                    <button
+                      onClick={() => scrollCarousel('left')}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/95 dark:bg-gray-800/95 rounded-full flex items-center justify-center shadow-xl hover:bg-white dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100 z-10"
+                      aria-label="Deslizar izquierda"
+                    >
+                      <ChevronLeft className="w-6 h-6 text-gray-800 dark:text-white" />
+                    </button>
+                    
+                    <button
+                      onClick={() => scrollCarousel('right')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/95 dark:bg-gray-800/95 rounded-full flex items-center justify-center shadow-xl hover:bg-white dark:hover:bg-gray-700 transition-all opacity-0 group-hover:opacity-100 z-10"
+                      aria-label="Deslizar derecha"
+                    >
+                      <ChevronRight className="w-6 h-6 text-gray-800 dark:text-white" />
+                    </button>
+                  </>
+                )}
+
+                {/* Scroll indicator */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary transition-all duration-300"
+                    style={{ width: `${scrollProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              <p className="text-sm text-text-muted text-center">
+                ← Desliza para ver más fotos →
+              </p>
             </div>
           </motion.div>
         )}
