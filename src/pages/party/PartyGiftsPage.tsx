@@ -245,6 +245,25 @@ export const PartyGiftsPage: React.FC = () => {
                   </motion.div>
                 ) : null}
 
+                {/* Mensaje informativo sobre el filtrado */}
+                {fullParty?.themeConfig?.filterGiftsByCategory && answers.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-purple-50 border border-purple-200 text-purple-800 p-4 rounded-md"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">🎯</span>
+                      <div>
+                        <p className="font-semibold">Regalos filtrados según tus respuestas</p>
+                        <p className="text-sm mt-1">
+                          Basado en tus preferencias, te mostramos los regalos más adecuados para ti.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {submitError && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -273,6 +292,8 @@ export const PartyGiftsPage: React.FC = () => {
                   selectedGiftId={selectedGift?.id}
                   isLoading={submitting}
                   groupByCategory={true}
+                  filterByAnswers={fullParty?.themeConfig?.filterGiftsByCategory || false}
+                  userAnswers={answers}
                 />
               </>
             ) : (

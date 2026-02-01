@@ -24,7 +24,9 @@ export function GalleryUpload({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -69,15 +71,26 @@ export function GalleryUpload({
     }
   };
 
-  const handleDelete = async (imageUrl: string) => {
+  const handleDelete = async (imageUrl: string, index: number) => {
+    if (!confirm(`¿Eliminar imagen ${index + 1}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+
     try {
+      setError(null);
+      console.log('🗑️ Intentando eliminar imagen:', imageUrl);
       const deleted = await deleteImage(imageUrl);
       if (deleted) {
         const newImages = currentImages.filter((url) => url !== imageUrl);
+        console.log('✅ Imagen eliminada. Nuevas imágenes:', newImages.length);
         onImagesUpdated(newImages);
+      } else {
+        console.warn('⚠️ No se pudo eliminar la imagen del servidor');
+        setError('No se pudo eliminar la imagen del servidor');
       }
     } catch (err) {
-      console.error('Error al eliminar imagen:', err);
+      console.error('❌ Error al eliminar imagen:', err);
+      setError('Error al eliminar la imagen');
     }
   };
 
@@ -86,6 +99,47 @@ export function GalleryUpload({
     const [movedImage] = newImages.splice(fromIndex, 1);
     newImages.splice(toIndex, 0, movedImage);
     onImagesUpdated(newImages);
+  };
+
+  const handleReplaceImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0 || replacingIndex === null) return;
+
+    setError(null);
+    setUploading(true);
+
+    try {
+      console.log('🔄 Reemplazando imagen en posición:', replacingIndex);
+      
+      // Subir la nueva imagen
+      const results = await uploadMultipleImages([files[0]], imageType, partyId);
+      
+      if (results[0].success) {
+        const oldImageUrl = currentImages[replacingIndex];
+        
+        console.log('🗑️ Eliminando imagen antigua:', oldImageUrl);
+        // Eliminar la imagen anterior
+        await deleteImage(oldImageUrl);
+        
+        // Reemplazar en el array
+        const newImages = [...currentImages];
+        newImages[replacingIndex] = results[0].url;
+        console.log('✅ Imagen reemplazada exitosamente');
+        onImagesUpdated(newImages);
+      } else {
+        console.error('❌ Error al subir la nueva imagen:', results[0].error);
+        setError('Error al subir la nueva imagen');
+      }
+    } catch (err) {
+      console.error('❌ Error al reemplazar imagen:', err);
+      setError(err instanceof Error ? err.message : 'Error al reemplazar imagen');
+    } finally {
+      setUploading(false);
+      setReplacingIndex(null);
+      if (replaceInputRef.current) {
+        replaceInputRef.current.value = '';
+      }
+    }
   };
 
   return (
@@ -124,12 +178,30 @@ export function GalleryUpload({
 
               {/* Overlay con acciones */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors rounded-lg flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
+                {/* Reemplazar imagen */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setReplacingIndex(index);
+                    replaceInputRef.current?.click();
+                  }}
+                  disabled={uploading}
+                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
+                  title="Reemplazar imagen"
+                >
+                  🔄
+                </button>
+
                 {/* Mover a la izquierda */}
                 {index > 0 && (
                   <button
                     type="button"
-                    onClick={() => handleReorder(index, index - 1)}
-                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReorder(index, index - 1);
+                    }}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
                     title="Mover a la izquierda"
                   >
                     ←
@@ -139,9 +211,12 @@ export function GalleryUpload({
                 {/* Eliminar */}
                 <button
                   type="button"
-                  onClick={() => handleDelete(imageUrl)}
-                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-600 hover:bg-red-50"
-                  title="Eliminar"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(imageUrl, index);
+                  }}
+                  className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-600 hover:bg-red-50 transition-colors"
+                  title="Eliminar imagen"
                 >
                   🗑️
                 </button>
@@ -150,8 +225,11 @@ export function GalleryUpload({
                 {index < currentImages.length - 1 && (
                   <button
                     type="button"
-                    onClick={() => handleReorder(index, index + 1)}
-                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReorder(index, index + 1);
+                    }}
+                    className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors"
                     title="Mover a la derecha"
                   >
                     →
@@ -206,13 +284,22 @@ export function GalleryUpload({
         )}
       </div>
 
-      {/* Input oculto */}
+      {/* Input oculto para agregar */}
       <input
         ref={fileInputRef}
         type="file"
         multiple
         accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
         onChange={handleFilesSelect}
+        className="hidden"
+      />
+
+      {/* Input oculto para reemplazar */}
+      <input
+        ref={replaceInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+        onChange={handleReplaceImage}
         className="hidden"
       />
 
@@ -229,7 +316,7 @@ export function GalleryUpload({
 
       {/* Ayuda */}
       <p className="text-xs text-gray-500">
-        💡 Puedes subir hasta {maxImages} imágenes. Haz clic en las flechas para reordenar.
+        💡 Puedes subir hasta {maxImages} imágenes. Usa 🔄 para reemplazar, las flechas para reordenar y 🗑️ para eliminar.
       </p>
     </div>
   );

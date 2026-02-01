@@ -25,6 +25,9 @@ export interface ThemeConfig {
     welcomeSubtitle?: string;
     extraInfo?: string;
   };
+
+  // Filtrado de regalos
+  filterGiftsByCategory?: boolean;  // Si está habilitado, filtra regalos según las respuestas del usuario
 }
 
 /**

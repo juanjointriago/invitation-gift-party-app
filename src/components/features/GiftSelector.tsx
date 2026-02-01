@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardBody } from '../ui/card';
 import { Button } from '../ui/button';
 import type { Gift } from '../../types/party';
+import type { AnswerToQuestion } from '../../types/party';
 
 interface GiftSelectorProps {
   gifts: Gift[];
@@ -10,6 +11,8 @@ interface GiftSelectorProps {
   selectedGiftId?: string;
   isLoading?: boolean;
   groupByCategory?: boolean;
+  filterByAnswers?: boolean;
+  userAnswers?: AnswerToQuestion[];
 }
 
 export const GiftSelector: React.FC<GiftSelectorProps> = ({
@@ -18,10 +21,59 @@ export const GiftSelector: React.FC<GiftSelectorProps> = ({
   selectedGiftId,
   isLoading = false,
   groupByCategory = true,
+  filterByAnswers = false,
+  userAnswers = [],
 }) => {
+  // Filtrar regalos basado en las respuestas del usuario
+  const filteredGifts = useMemo(() => {
+    if (!filterByAnswers || userAnswers.length === 0) {
+      return gifts;
+    }
+
+    // Extraer las categorías de las respuestas del usuario
+    const userCategories = new Set<string>();
+    
+    userAnswers.forEach((answer) => {
+      // Normalizar la respuesta a minúsculas para comparación
+      if (typeof answer.answer === 'string') {
+        userCategories.add(answer.answer.toLowerCase().trim());
+      } else if (Array.isArray(answer.answer)) {
+        answer.answer.forEach((ans) => {
+          userCategories.add(ans.toLowerCase().trim());
+        });
+      }
+    });
+
+    // Si no hay categorías en las respuestas, mostrar todos los regalos
+    if (userCategories.size === 0) {
+      return gifts;
+    }
+
+    // Filtrar regalos que coincidan con alguna categoría de las respuestas
+    const filtered = gifts.filter((gift) => {
+      // Si el regalo no tiene categoría o es "default" o "unisex", siempre mostrarlo
+      if (!gift.category || gift.category === 'default' || gift.category === 'unisex') {
+        return true;
+      }
+
+      // Verificar si la categoría del regalo coincide con alguna respuesta
+      const giftCategory = gift.category.toLowerCase().trim();
+      return userCategories.has(giftCategory);
+    });
+
+    console.log('🎁 Filtrado de regalos:', {
+      totalGifts: gifts.length,
+      filteredGifts: filtered.length,
+      userCategories: Array.from(userCategories),
+      filterEnabled: filterByAnswers,
+    });
+
+    return filtered;
+  }, [gifts, filterByAnswers, userAnswers]);
+
   // Agrupar regalos por categoría si es necesario
   const groupedGifts = groupByCategory
-    ? gifts.reduce(
+    ? filteredGifts.reduce(
         (acc, gift) => {
           const category = gift.category || 'default';
           if (!acc[category]) acc[category] = [];
@@ -30,9 +82,25 @@ export const GiftSelector: React.FC<GiftSelectorProps> = ({
         },
         {} as Record<string, Gift[]>
       )
-    : { all: gifts };
+    : { all: filteredGifts };
 
   const isGiftAvailable = (gift: Gift) => gift.remainingQuantity > 0;
+
+  // Mensaje si no hay regalos después del filtrado
+  if (filteredGifts.length === 0 && filterByAnswers) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-5xl mb-4">🎁</div>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">
+          No hay regalos disponibles para tu selección
+        </h3>
+        <p className="text-gray-600">
+          Basado en tus respuestas, no encontramos regalos en esta categoría. 
+          Por favor, contacta al anfitrión para más opciones.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

@@ -22,6 +22,7 @@ export const themeConfigSchema = z.object({
     welcomeSubtitle: z.string().max(500, 'Máximo 500 caracteres').optional(),
     extraInfo: z.string().max(1000, 'Máximo 1000 caracteres').optional(),
   }).optional(),
+  filterGiftsByCategory: z.boolean().optional(),
 });
 
 export const questionSchema = z.object({

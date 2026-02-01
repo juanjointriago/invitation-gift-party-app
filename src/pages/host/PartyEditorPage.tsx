@@ -165,6 +165,7 @@ const themeFormSchema = z.object({
       extraInfo: z.string().max(1000, 'Máximo 1000 caracteres').trim().optional(),
     })
     .optional(),
+  filterGiftsByCategory: z.boolean().optional(),
 });
 
 const dateStringSchema = z
@@ -251,6 +252,7 @@ type PartyFormValues = {
       welcomeSubtitle?: string;
       extraInfo?: string;
     };
+    filterGiftsByCategory?: boolean;
   };
 };
 
@@ -816,7 +818,10 @@ export const PartyEditorPage: React.FC = () => {
                     label="Galería de imágenes"
                     description="Imágenes que se mostrarán en la galería de la invitación"
                     currentImages={field.value || []}
-                    onImagesUpdated={(urls) => field.onChange(urls)}
+                    onImagesUpdated={(urls) => {
+                      console.log('📝 Actualizando galería de imágenes:', urls.length, 'imágenes');
+                      field.onChange(urls);
+                    }}
                     imageType="gallery"
                     partyId={p_uuid}
                     maxImages={10}
@@ -841,6 +846,32 @@ export const PartyEditorPage: React.FC = () => {
                   {...register('themeConfig.customTexts.extraInfo' as const)}
                 />
               </div>
+
+              {/* Filtrado de regalos por categoría */}
+              <Controller
+                control={control}
+                name="themeConfig.filterGiftsByCategory"
+                render={({ field }) => (
+                  <div className="flex items-start gap-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="filterGiftsByCategory"
+                      checked={field.value || false}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                    />
+                    <label htmlFor="filterGiftsByCategory" className="flex-1 cursor-pointer">
+                      <span className="block text-sm font-semibold text-gray-900">
+                        Filtrar regalos por categoría según respuestas
+                      </span>
+                      <span className="block text-xs text-gray-600 mt-1">
+                        Si está habilitado, los invitados verán únicamente los regalos de la categoría que coincida con sus respuestas. 
+                        Por ejemplo, si responden "Mago" en las preguntas, solo verán regalos de la categoría "Mago".
+                      </span>
+                    </label>
+                  </div>
+                )}
+              />
 
               <div
                 className="rounded-2xl border border-border overflow-hidden"
