@@ -20,6 +20,7 @@ import { useNotificationStore } from '../../stores/notification.store';
 import { toast } from 'sonner';
 import type { Party, ThemeConfig } from '../../types/party';
 import { usePartyContextStore } from '../../stores/partyContext.store';
+import { isMapUrl, generateMapLinks } from '../../utils/map.utils';
 
 const questionFormSchema = z.object({
   id: z.string().min(1),
@@ -166,6 +167,7 @@ const themeFormSchema = z.object({
     })
     .optional(),
   filterGiftsByCategory: z.boolean().optional(),
+  displayMode: z.enum(['invitation', 'seating', 'both']).optional(),
 });
 
 const dateStringSchema = z
@@ -201,6 +203,9 @@ const partyFormSchema = z
     questions: z.array(questionFormSchema).max(20, 'Máximo 20 preguntas'),
     giftList: z.array(giftFormSchema).max(50, 'Máximo 50 regalos'),
     themeConfig: themeFormSchema.optional(),
+    maxPhotosPerPerson: z.number().int().min(1, 'Mínimo 1').max(10, 'Máximo 10').optional(),
+    allowCompanions: z.boolean().optional(),
+    maxCompanionsPerGuest: z.number().int().min(1, 'Mínimo 1').max(5, 'Máximo 5').optional(),
   })
   .superRefine((data, ctx) => {
     data.giftList.forEach((g, idx) => {
@@ -253,7 +258,11 @@ type PartyFormValues = {
       extraInfo?: string;
     };
     filterGiftsByCategory?: boolean;
+    displayMode?: 'invitation' | 'seating' | 'both';
   };
+  maxPhotosPerPerson?: number;
+  allowCompanions?: boolean;
+  maxCompanionsPerGuest?: number;
 };
 
 const formatDateInput = (timestamp?: number) => {
@@ -264,6 +273,73 @@ const formatDateInput = (timestamp?: number) => {
 };
 
 const parseDateToMs = (value: string) => new Date(value).getTime();
+
+/** Location field with map URL detection and helper hints */
+const LocationField: React.FC<{
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  register: any; watch: any; errors: any;
+}> = ({ register, watch, errors }) => {
+  const loc: string = watch('location') || '';
+  const isMap = loc.length > 3 && isMapUrl(loc);
+  const mapLinks = isMap ? generateMapLinks(loc) : null;
+  return (
+    <div>
+      <Input
+        label="Ubicación"
+        placeholder="Pega enlace de Google Maps o escribe coordenadas"
+        {...register('location')}
+        error={errors.location?.message}
+      />
+      <div className="mt-1.5">
+        {isMap && mapLinks ? (
+          <p className="text-xs text-green-600 dark:text-green-400">
+            ✅ Mapa detectado — los invitados verán botones de Google Maps y Waze
+          </p>
+        ) : (
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            💡 Para navegación: en Google Maps busca el lugar → toca <strong>Compartir</strong> → copia el enlace. También puedes usar coordenadas: <code className="bg-gray-100 dark:bg-zinc-700 px-1 rounded text-xs">-0.1800,-78.4678</code>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/** Color picker field: shows a large swatch + hex value + native color input */
+const ColorField: React.FC<{
+  label: string;
+  value?: string;
+  defaultColor: string;
+  onChange: (hex: string) => void;
+}> = ({ label, value, defaultColor, onChange }) => {
+  const displayColor = value && /^#[0-9A-F]{6}$/i.test(value) ? value : defaultColor;
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:border-purple-400 dark:hover:border-purple-500 transition-colors">
+      <label className="relative cursor-pointer shrink-0" title="Click para abrir selector de color">
+        <div
+          className="w-14 h-14 rounded-lg shadow-md ring-2 ring-white dark:ring-zinc-700 ring-offset-1"
+          style={{ backgroundColor: displayColor }}
+        />
+        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-zinc-700 rounded-full border border-gray-200 dark:border-zinc-600 flex items-center justify-center shadow-sm">
+          <svg className="w-3 h-3 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6-6 3 3-6 6H9v-3z" />
+          </svg>
+        </div>
+        <input
+          type="color"
+          value={displayColor}
+          onChange={(e) => onChange(e.target.value)}
+          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+        />
+      </label>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
+        <p className="font-mono font-bold text-gray-900 dark:text-white text-sm">{displayColor.toUpperCase()}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Click para cambiar</p>
+      </div>
+    </div>
+  );
+};
 
 export const PartyEditorPage: React.FC = () => {
   const navigate = useNavigate();
@@ -292,6 +368,9 @@ export const PartyEditorPage: React.FC = () => {
       questions: [],
       giftList: [],
       themeConfig: {},
+      maxPhotosPerPerson: 5,
+      allowCompanions: false,
+      maxCompanionsPerGuest: 1,
     },
   });
 
@@ -393,6 +472,9 @@ export const PartyEditorPage: React.FC = () => {
           order: g.order ?? idx,
         })),
         themeConfig: fullParty.themeConfig || {},
+        maxPhotosPerPerson: (fullParty as any).maxPhotosPerPerson ?? 5,
+        allowCompanions: (fullParty as any).allowCompanions ?? false,
+        maxCompanionsPerGuest: (fullParty as any).maxCompanionsPerGuest ?? 1,
       });
       originalThemeRef.current = fullParty.themeConfig;
     }
@@ -418,12 +500,15 @@ export const PartyEditorPage: React.FC = () => {
       ...values,
       date: parseDateToMs(values.date),
       updatedAt: Date.now(),
+      maxPhotosPerPerson: values.maxPhotosPerPerson ?? 5,
+      allowCompanions: values.allowCompanions ?? false,
+      maxCompanionsPerGuest: values.maxCompanionsPerGuest ?? 1,
     } as Partial<Party>;
 
     try {
       await PartyService.updateParty(p_uuid, payload);
       toast.success('Fiesta actualizada');
-      navigate(`/host/party/${p_uuid}?p_uuid=${p_uuid}`);
+      navigate(-1);
     } catch (err) {
       toast.error('Error al guardar. Intenta de nuevo.');
     }
@@ -456,19 +541,18 @@ export const PartyEditorPage: React.FC = () => {
                 {...register('date')}
                 error={errors.date?.message}
               />
-              <Input
-                label="Ubicación"
-                placeholder="Ej: Calle Principal 123"
-                {...register('location')}
-                error={errors.location?.message}
+              <LocationField
+                register={register}
+                watch={watch}
+                errors={errors}
               />
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-semibold text-text">Estado</label>
+                <label className="text-sm font-semibold text-gray-900 dark:text-gray-100">Estado</label>
                 <select
                   {...register('status')}
-                  className="mt-1 w-full border border-border rounded-md px-3 py-2 text-sm"
+                  className="mt-1 w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                 >
                   <option value="draft">Borrador</option>
                   <option value="published">Publicada</option>
@@ -477,6 +561,25 @@ export const PartyEditorPage: React.FC = () => {
                 {errors.status?.message && (
                   <p className="text-error text-xs mt-1">{errors.status.message}</p>
                 )}
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-900 dark:text-gray-100">¿Qué ven los invitados?</label>
+                <Controller
+                  control={control}
+                  name="themeConfig.displayMode"
+                  render={({ field }) => (
+                    <select
+                      value={field.value || 'both'}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="mt-1 w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="both">Invitación + Plano del salón</option>
+                      <option value="invitation">Solo invitación</option>
+                      <option value="seating">Solo plano del salón</option>
+                    </select>
+                  )}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Controla qué pantallas ven tus invitados al acceder al evento</p>
               </div>
             </div>
           </div>
@@ -489,7 +592,7 @@ export const PartyEditorPage: React.FC = () => {
         content: (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-text">Preguntas ({questionsFields.length})</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Preguntas ({questionsFields.length})</h3>
               <Button
                 type="button"
                 variant="outline"
@@ -510,11 +613,11 @@ export const PartyEditorPage: React.FC = () => {
             </div>
 
             {questionsFields.length === 0 && (
-              <p className="text-sm text-text-muted">Sin preguntas aún. Añade la primera.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Sin preguntas aún. Añade la primera.</p>
             )}
 
             {questionsFields.map((field, idx) => (
-              <Card key={field.id} className="border border-border">
+              <Card key={field.id} className="border border-gray-300 dark:border-zinc-600">
                 <CardBody className="space-y-3">
                   <div className="flex justify-between items-start gap-4">
                     <Input
@@ -542,10 +645,10 @@ export const PartyEditorPage: React.FC = () => {
 
                   <div className="grid md:grid-cols-3 gap-3">
                     <div>
-                      <label className="text-sm font-semibold text-text">Tipo</label>
+                      <label className="text-sm font-semibold text-gray-900 dark:text-gray-100">Tipo</label>
                       <select
                         {...register(`questions.${idx}.type` as const)}
-                        className="mt-1 w-full border border-border rounded-md px-3 py-2 text-sm"
+                        className="mt-1 w-full border border-gray-300 dark:border-zinc-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
                       >
                         <option value="text">Texto</option>
                         <option value="single-choice">Opción única</option>
@@ -554,7 +657,7 @@ export const PartyEditorPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 pt-6">
                       <input type="checkbox" {...register(`questions.${idx}.required` as const)} />
-                      <span className="text-sm text-text">Requerida</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100">Requerida</span>
                     </div>
                     <Input
                       label="Orden"
@@ -601,7 +704,7 @@ export const PartyEditorPage: React.FC = () => {
         content: (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-text">Regalos ({giftsFields.length})</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Regalos ({giftsFields.length})</h3>
               <Button
                 type="button"
                 variant="outline"
@@ -621,11 +724,11 @@ export const PartyEditorPage: React.FC = () => {
             </div>
 
             {giftsFields.length === 0 && (
-              <p className="text-sm text-text-muted">Sin regalos aún. Añade el primero.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Sin regalos aún. Añade el primero.</p>
             )}
 
             {giftsFields.map((field, idx) => (
-              <Card key={field.id} className="border border-border">
+              <Card key={field.id} className="border border-gray-300 dark:border-zinc-600">
                 <CardBody className="space-y-3">
                   <div className="flex justify-between items-start gap-4">
                     <Input
@@ -702,9 +805,9 @@ export const PartyEditorPage: React.FC = () => {
             <CardBody className="space-y-5">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
-                  <p className="text-sm text-text-muted">Define los colores base y mira la vista previa.</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Define los colores base y mira la vista previa.</p>
                 </div>
-                <label className="flex items-center gap-2 text-sm text-text">
+                <label className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
                   <input
                     type="checkbox"
                     checked={livePreview}
@@ -714,15 +817,35 @@ export const PartyEditorPage: React.FC = () => {
                 </label>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <Input label="Color primario" type="color" {...register('themeConfig.primaryColor')} />
-                <Input label="Color secundario" type="color" {...register('themeConfig.secondaryColor')} />
-                <Input label="Color acento" type="color" {...register('themeConfig.accentColor')} />
-                <Input label="Color de fondo" type="color" {...register('themeConfig.backgroundColor')} />
+              <div className="grid md:grid-cols-2 gap-3">
+                <ColorField
+                  label="Color primario"
+                  value={themePreview.primaryColor}
+                  defaultColor="#7C3AED"
+                  onChange={(hex) => setValue('themeConfig.primaryColor', hex, { shouldDirty: true })}
+                />
+                <ColorField
+                  label="Color secundario"
+                  value={themePreview.secondaryColor}
+                  defaultColor="#A78BFA"
+                  onChange={(hex) => setValue('themeConfig.secondaryColor', hex, { shouldDirty: true })}
+                />
+                <ColorField
+                  label="Color acento"
+                  value={themePreview.accentColor}
+                  defaultColor="#0EA5E9"
+                  onChange={(hex) => setValue('themeConfig.accentColor', hex, { shouldDirty: true })}
+                />
+                <ColorField
+                  label="Color de fondo"
+                  value={themePreview.backgroundColor}
+                  defaultColor="#F8FAFC"
+                  onChange={(hex) => setValue('themeConfig.backgroundColor', hex, { shouldDirty: true })}
+                />
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-text">Paleta seleccionada: {selectedPalette || 'Personalizada'}</p>
+                <p className="text-sm text-gray-900 dark:text-white">Paleta seleccionada: {selectedPalette || 'Personalizada'}</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -749,7 +872,7 @@ export const PartyEditorPage: React.FC = () => {
                         setSelectedPalette(palette.name);
                         setLivePreview(true);
                       }}
-                      className={`rounded-lg border p-3 text-left transition hover:border-primary/60 ${isActive ? 'border-primary shadow-md' : 'border-border'}`}
+                      className={`rounded-lg border p-3 text-left transition hover:border-primary/60 ${isActive ? 'border-primary shadow-md' : 'border-gray-300 dark:border-zinc-600'}`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         {Object.entries(palette.colors).map(([key, color]) => (
@@ -759,15 +882,15 @@ export const PartyEditorPage: React.FC = () => {
                               style={{ backgroundColor: color }}
                               title={`${key}: ${color}`}
                             />
-                            <span className="text-[10px] text-text-muted">{color}</span>
+                            <span className="text-[10px] text-gray-600 dark:text-gray-400">{color}</span>
                           </div>
                         ))}
                       </div>
-                      <p className="text-sm font-semibold text-text flex items-center gap-2">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                         {palette.name}
                         {isActive && <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-white">Seleccionada</span>}
                       </p>
-                      <p className="text-xs text-text-muted mt-1">Click para aplicar y luego ajusta los colores arriba si quieres personalizar.</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Click para aplicar y luego ajusta los colores arriba si quieres personalizar.</p>
                     </button>
                   );
                 })}
@@ -874,7 +997,7 @@ export const PartyEditorPage: React.FC = () => {
               />
 
               <div
-                className="rounded-2xl border border-border overflow-hidden"
+                className="rounded-2xl border border-gray-300 dark:border-zinc-600 overflow-hidden"
                 style={{
                   background: themePreview.backgroundColor || '#F8FAFC',
                   borderColor: themePreview.primaryColor || '#7C3AED',
@@ -895,7 +1018,7 @@ export const PartyEditorPage: React.FC = () => {
                   <p className="text-sm" style={{ color: themePreview.accentColor || '#0EA5E9' }}>
                     {themePreview.customTexts?.welcomeSubtitle || 'Subtítulo de ejemplo'}
                   </p>
-                  <p className="text-sm text-text" style={{ color: '#0f172a' }}>
+                  <p className="text-sm text-gray-900 dark:text-gray-100" style={{ color: '#0f172a' }}>
                     {themePreview.customTexts?.extraInfo || 'Comparte indicaciones o un mensaje especial para tus invitados.'}
                   </p>
                   <div className="flex gap-3 pt-2">
@@ -907,6 +1030,69 @@ export const PartyEditorPage: React.FC = () => {
                     </Button>
                   </div>
                 </div>
+              </div>
+            </CardBody>
+          </Card>
+        ),
+      },
+      {
+        id: 'advanced',
+        title: 'Configuración avanzada',
+        description: 'Fotos de invitados y acompañantes',
+        content: (
+          <Card>
+            <CardBody className="space-y-6">
+              {/* Fotos */}
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Fotos del evento</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Configura cuántas fotos puede subir cada invitado.</p>
+                <Input
+                  label="Máximo de fotos por invitado"
+                  type="number"
+                  {...register('maxPhotosPerPerson', { valueAsNumber: true })}
+                  error={errors.maxPhotosPerPerson?.message}
+                  helperText="Entre 1 y 10 fotos (por defecto: 5)"
+                />
+              </div>
+
+              {/* Acompañantes */}
+              <div className="border-t border-gray-200 dark:border-zinc-700 pt-5">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">Acompañantes</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Permite que los invitados traigan acompañantes al evento.</p>
+
+                <Controller
+                  control={control}
+                  name="allowCompanions"
+                  render={({ field }) => (
+                    <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg mb-4">
+                      <input
+                        type="checkbox"
+                        id="allowCompanions"
+                        checked={field.value || false}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                      <label htmlFor="allowCompanions" className="flex-1 cursor-pointer">
+                        <span className="block text-sm font-semibold text-gray-900 dark:text-white">
+                          Permitir acompañantes
+                        </span>
+                        <span className="block text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          Los invitados podrán registrar el nombre de sus acompañantes al asignar asientos en el plano del salón.
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                />
+
+                {watch('allowCompanions') && (
+                  <Input
+                    label="Máximo de acompañantes por invitado"
+                    type="number"
+                    {...register('maxCompanionsPerGuest', { valueAsNumber: true })}
+                    error={errors.maxCompanionsPerGuest?.message}
+                    helperText="Entre 1 y 5 acompañantes (por defecto: 1)"
+                  />
+                )}
               </div>
             </CardBody>
           </Card>
@@ -925,7 +1111,7 @@ export const PartyEditorPage: React.FC = () => {
   if (partyLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-text-muted">Cargando editor...</p>
+        <p className="text-gray-600 dark:text-gray-400">Cargando editor...</p>
       </div>
     );
   }
@@ -941,8 +1127,8 @@ export const PartyEditorPage: React.FC = () => {
   return (
     <div className="container-app py-10 space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-3xl font-bold text-text">Editar fiesta</h1>
-        <p className="text-text-muted">Actualiza datos, preguntas, regalos y tema.</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Editar fiesta</h1>
+        <p className="text-gray-600 dark:text-gray-300">Actualiza datos, preguntas, regalos y tema.</p>
       </motion.div>
 
       {/* Sección de invitación pública */}
@@ -963,7 +1149,7 @@ export const PartyEditorPage: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate(`/host/party/${p_uuid}?p_uuid=${p_uuid}`)}
+            onClick={() => navigate(-1)}
           >
             Cancelar
           </Button>

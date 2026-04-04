@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
+import { useThemeStore } from '../../stores/theme.store';
 import { Button } from '../ui/button';
 import { ThemeToggle } from '../ui/ThemeToggle';
 
@@ -10,8 +11,17 @@ import { ThemeToggle } from '../ui/ThemeToggle';
  */
 export const AdminDashboardLayout: React.FC = () => {
   const { user, logout } = useAuthStore();
+  const { applyUserBrandColors } = useThemeStore();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+
+  useEffect(() => {
+    applyUserBrandColors({
+      primary: user?.preferences?.brandPrimary,
+      secondary: user?.preferences?.brandSecondary,
+      accent: user?.preferences?.brandAccent,
+    });
+  }, [user?.preferences, applyUserBrandColors]);
 
   const handleLogout = () => {
     logout();
@@ -19,12 +29,12 @@ export const AdminDashboardLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-zinc-800">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-zinc-900">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? 'w-64' : 'w-20'
-        } bg-white dark:bg-zinc-700 border-r border-gray-200 dark:border-zinc-600 transition-all duration-300 flex flex-col sticky top-0 h-screen`}
+        } bg-white dark:bg-zinc-800 border-r border-gray-300 dark:border-zinc-700 transition-all duration-300 flex flex-col sticky top-0 h-screen shadow-lg`}
       >
         {/* Logo */}
         <div className="h-16 border-b border-gray-200 dark:border-zinc-600 flex items-center justify-center p-4">
@@ -88,21 +98,21 @@ export const AdminDashboardLayout: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="h-16 border-b border-gray-200 dark:border-zinc-600 bg-white dark:bg-zinc-700 flex items-center px-6 shadow-sm">
+        <header className="h-16 border-b border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex items-center px-6 shadow-sm">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-700 dark:text-zinc-100 hover:text-purple-600 dark:hover:text-purple-300 transition-colors"
+            className="text-gray-900 dark:text-zinc-100 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-bold text-xl"
           >
             ☰
           </button>
           <div className="flex-1 flex items-center justify-end gap-4">
             <ThemeToggle />
-            <span className="text-sm text-gray-600 dark:text-zinc-300">{user?.name}</span>
+            <span className="text-sm text-gray-900 dark:text-zinc-100 font-medium">{user?.name}</span>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-zinc-800">
+        <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-zinc-900">
           <Outlet />
         </main>
       </div>

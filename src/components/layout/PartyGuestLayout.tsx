@@ -23,10 +23,24 @@ export const PartyGuestLayout: React.FC = () => {
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
 
-  // Evitar hidratación incorrecta esperando al montaje
   useEffect(() => {
     setMounted(true);
+    // Clean up any stale :root inline brand colors that may have leaked from a previous session
+    ['--color-primary', '--color-secondary', '--color-accent', '--color-background'].forEach(
+      (v) => document.documentElement.style.removeProperty(v)
+    );
   }, []);
+
+  // Build scoped CSS variables from party themeConfig — scoped to this layout div only
+  const tc = currentParty?.themeConfig;
+  const partyVars: React.CSSProperties = tc
+    ? ({
+        ...(tc.primaryColor && { '--color-primary': tc.primaryColor }),
+        ...(tc.secondaryColor && { '--color-secondary': tc.secondaryColor }),
+        ...(tc.accentColor && { '--color-accent': tc.accentColor }),
+        ...(tc.backgroundColor && { '--color-background': tc.backgroundColor }),
+      } as React.CSSProperties)
+    : {};
 
   const handleLogout = () => {
     logout();
@@ -38,7 +52,7 @@ export const PartyGuestLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-zinc-800">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-zinc-800" style={partyVars}>
       {/* Header temático */}
       {mounted && currentParty?.themeConfig?.loginBannerUrl && (
         <div
@@ -60,7 +74,7 @@ export const PartyGuestLayout: React.FC = () => {
                 className="h-8 w-8 rounded-full object-cover"
               />
             )}
-            <h1 className="text-lg font-bold text-purple-600 dark:text-purple-300">
+            <h1 className="text-lg font-bold text-primary">
               {mounted && currentParty?.title ? currentParty.title : 'Mi Fiesta'}
             </h1>
           </div>
@@ -82,7 +96,7 @@ export const PartyGuestLayout: React.FC = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <div className="w-8 h-8 rounded-full bg-purple-600 dark:bg-purple-500 text-white flex items-center justify-center text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
                       {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline text-sm">{user.name || user.email}</span>

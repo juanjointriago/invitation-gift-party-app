@@ -28,6 +28,9 @@ export interface ThemeConfig {
 
   // Filtrado de regalos
   filterGiftsByCategory?: boolean;  // Si está habilitado, filtra regalos según las respuestas del usuario
+
+  // Modo de visualización para invitados
+  displayMode?: 'invitation' | 'seating' | 'both';  // Controla qué pantallas ve el invitado
 }
 
 /**
@@ -62,27 +65,34 @@ export interface Gift {
 export interface Party extends BaseEntity {
   party_uuid: string;             // UUID único de la fiesta
   host_user_id: string;           // ID del usuario anfitrión
-  
+
   // Datos básicos
   title: string;
   description: string;
   date: number;                   // Timestamp en ms
   location: string;
-  
+
   // Configuración temática
   themeConfig?: ThemeConfig;
-  
+
   // Datos de la fiesta
   questions: Question[];
   giftList: Gift[];
   categories?: string[];          // Categorías disponibles de regalos
-  
+
   // Estado
   status: 'draft' | 'published' | 'archived';
-  
+
   // Metadata
   totalGuestsConfirmed?: number;
   totalGiftsSelected?: number;
+
+  // Configuración de fotos
+  maxPhotosPerPerson?: number;    // default 5, configurable 1-10
+
+  // Configuración de acompañantes
+  allowCompanions?: boolean;       // whether guests can bring companions
+  maxCompanionsPerGuest?: number;  // max companions per guest (default 1)
 }
 
 /**
@@ -95,23 +105,35 @@ export interface AnswerToQuestion {
 }
 
 /**
+ * Acompañante de un invitado
+ */
+export interface Companion {
+  name: string;
+  seatId?: string;     // assigned seat ID in venue
+  guestId?: string;    // if they registered separately
+}
+
+/**
  * Registro de asistencia y regalo seleccionado por un invitado
  * Colección: partyAssistanceGift (o similar en Firestore)
  */
 export interface PartyAssistanceGift extends BaseEntity {
   party_uuid: string;
   guest_user_id: string;
-  
+
   // Regalo seleccionado
   selectedGiftId: string;
   selectedGiftNameSnapshot: string;
   quantity: number;               // Cantidad seleccionada (típicamente 1)
-  
+
   // Respuestas a preguntas
   answersToQuestions: AnswerToQuestion[];
-  
+
   // Confirmación de asistencia
   attendanceConfirmed: boolean;
+
+  // Acompañantes
+  companions?: Companion[];
 }
 
 /**

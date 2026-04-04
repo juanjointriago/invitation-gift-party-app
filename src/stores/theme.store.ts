@@ -1,29 +1,42 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type Theme = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
-interface ThemeState {
-  theme: Theme;
-  actualTheme: 'light' | 'dark'; // El tema actual resuelto (sin 'system')
-  
-  // Actions
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-  initializeTheme: () => void;
+export interface BrandColors {
+  primary?: string;
+  secondary?: string;
+  accent?: string;
 }
 
-const getSystemTheme = (): 'light' | 'dark' => {
-  if (typeof window === 'undefined') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-};
+interface ThemeState {
+  theme: ThemeMode;
+  actualTheme: 'light' | 'dark';
 
-const applyTheme = (theme: 'light' | 'dark') => {
+  setTheme: (theme: ThemeMode) => void;
+  toggleTheme: () => void;
+  initializeTheme: () => void;
+  /** Apply user brand colors to :root (dashboard scope — overrides CSS defaults) */
+  applyUserBrandColors: (colors: BrandColors) => void;
+  /** Remove user brand colors from :root */
+  clearUserBrandColors: () => void;
+}
+
+const BRAND_VARS: Array<[keyof BrandColors, string]> = [
+  ['primary', '--color-primary'],
+  ['secondary', '--color-secondary'],
+  ['accent', '--color-accent'],
+];
+
+const getSystemTheme = (): 'light' | 'dark' =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+
+const applyThemeClass = (theme: 'light' | 'dark') => {
   if (typeof window === 'undefined') return;
-  
-  const root = window.document.documentElement;
-  root.classList.remove('light', 'dark');
-  root.classList.add(theme);
+  document.documentElement.classList.remove('light', 'dark');
+  document.documentElement.classList.add(theme);
 };
 
 export const useThemeStore = create<ThemeState>()(
@@ -32,51 +45,50 @@ export const useThemeStore = create<ThemeState>()(
       theme: 'system',
       actualTheme: 'light',
 
-      setTheme: (theme: Theme) => {
-        let actualTheme: 'light' | 'dark';
-        
-        if (theme === 'system') {
-          actualTheme = getSystemTheme();
-        } else {
-          actualTheme = theme;
-        }
-        
-        applyTheme(actualTheme);
-        
-        set({ theme, actualTheme });
+      setTheme: (theme: ThemeMode) => {
+        const actual = theme === 'system' ? getSystemTheme() : theme;
+        applyThemeClass(actual);
+        set({ theme, actualTheme: actual });
       },
 
       toggleTheme: () => {
-        const { actualTheme } = get();
-        const newTheme = actualTheme === 'light' ? 'dark' : 'light';
-        get().setTheme(newTheme);
+        const next = get().actualTheme === 'light' ? 'dark' : 'light';
+        get().setTheme(next);
       },
 
       initializeTheme: () => {
-        const { theme } = get();
-        
-        // Escuchar cambios en las preferencias del sistema
+        const { theme, setTheme } = get();
+        setTheme(theme);
+
         if (typeof window !== 'undefined') {
-          const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-          
-          const handleChange = () => {
-            const { theme } = get();
-            if (theme === 'system') {
-              const systemTheme = getSystemTheme();
-              applyTheme(systemTheme);
-              set({ actualTheme: systemTheme });
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (get().theme === 'system') {
+              const actual = getSystemTheme();
+              applyThemeClass(actual);
+              set({ actualTheme: actual });
             }
-          };
-          
-          mediaQuery.addEventListener('change', handleChange);
-          
-          // Aplicar el tema inicial
-          get().setTheme(theme);
+          });
         }
+      },
+
+      applyUserBrandColors: (colors: BrandColors) => {
+        if (typeof window === 'undefined') return;
+        BRAND_VARS.forEach(([key, cssVar]) => {
+          const val = colors[key];
+          if (val) document.documentElement.style.setProperty(cssVar, val);
+          else document.documentElement.style.removeProperty(cssVar);
+        });
+      },
+
+      clearUserBrandColors: () => {
+        if (typeof window === 'undefined') return;
+        BRAND_VARS.forEach(([, cssVar]) => {
+          document.documentElement.style.removeProperty(cssVar);
+        });
       },
     }),
     {
-      name: 'goodent-theme-storage',
+      name: 'partygifts-theme',
       partialize: (state) => ({ theme: state.theme }),
     }
   )

@@ -35,8 +35,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={fallbackPath} replace />;
   }
 
-  // Verificar rol si es requerido
-  if (requiredRoles && !requiredRoles.includes(user.role)) {
+  // Verificar rol si es requerido — el administrador tiene acceso total
+  if (requiredRoles && user.role !== 'administrator' && !requiredRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
 

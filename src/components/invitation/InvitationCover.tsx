@@ -68,9 +68,9 @@ export function InvitationCover({
         )}
       </motion.div>
 
-      {/* Overlay degradado */}
+      {/* Overlay degradado - Más oscuro para mejor legibilidad */}
       <div 
-        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black/70 dark:from-black/60 dark:via-black/70 dark:to-black/85"
+        className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/60 to-black/80 dark:from-black/70 dark:via-black/80 dark:to-black/90"
       />
 
       {/* Contenido */}
@@ -81,17 +81,17 @@ export function InvitationCover({
           transition={{ duration: 0.8, delay: 0.2 }}
           className="space-y-6"
         >
-          {/* Título */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white drop-shadow-2xl">
+          {/* Título - Texto más brillante con mejor sombra */}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
             {title}
           </h1>
 
-          {/* Fecha */}
+          {/* Fecha - Mayor contraste */}
           <motion.p
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-xl md:text-2xl text-white/90 font-light capitalize"
+            className="text-xl md:text-2xl text-white font-medium capitalize drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
           >
             📅 {formatDate(date)}
           </motion.p>

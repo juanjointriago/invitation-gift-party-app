@@ -19,6 +19,7 @@ interface AuthState extends LoadingState {
   
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   register: (userData: CreateUserData) => Promise<RegisterResponse>;
   logout: () => void;
   setUser: (user: IUser | null) => void;
@@ -59,6 +60,22 @@ const createAuthStore: StateCreator<AuthState> = (set) => {
         } else {
           updateAuthState(null, false);
           throw new StoreError(result.message || 'Authentication failed');
+        }
+      },
+      setLoading,
+      setError
+    ),
+
+    loginWithGoogle: createAsyncAction(
+      async () => {
+        const result: AuthResponse = await AuthService.googleSignUpLogin();
+        
+        if (result.isAuthenticated && result.user) {
+          updateAuthState(result.user, true);
+          console.debug("User authenticated with Google successfully", result.user.email);
+        } else {
+          updateAuthState(null, false);
+          throw new StoreError(result.message || 'Google authentication failed');
         }
       },
       setLoading,

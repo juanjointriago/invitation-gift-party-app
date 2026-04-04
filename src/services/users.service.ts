@@ -8,7 +8,7 @@ import {
   orderBy 
 } from 'firebase/firestore';
 import { db } from '../db/initialize';
-import type { IUser, Role } from '../interfaces/users.interface';
+import type { IUser, Role, UserPreferences } from '../interfaces/users.interface';
 
 export class UsersService {
   static getAllUsers = async (): Promise<IUser[]> => {
@@ -57,6 +57,11 @@ export class UsersService {
       console.error('Error getting user by id:', error);
       return null;
     }
+  };
+
+  static updateUserPreferences = async (userId: string, preferences: UserPreferences): Promise<void> => {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { preferences, updatedAt: Date.now() });
   };
 
   static getUsersByIds = async (userIds: string[]): Promise<Map<string, IUser>> => {

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardBody } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -12,9 +13,10 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import type { SortingState, PaginationState } from '@tanstack/react-table';
-import { ArrowUpDown, Search, Calendar, Users, Gift, MessageSquare, Trash2, Archive, Eye } from 'lucide-react';
+import { ArrowUpDown, Search, Calendar, Users, Gift, MessageSquare, Trash2, Archive, Eye, Pencil, Plus, LayoutDashboard } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const [parties, setParties] = useState<Party[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,9 +162,15 @@ export const AdminDashboardPage: React.FC = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        className="flex items-center justify-between"
       >
-        <h1 className="text-3xl font-bold text-text">Panel de administrador</h1>
-        <p className="text-text-muted">Resumen general de fiestas, invitados y estadísticas.</p>
+        <div>
+          <h1 className="text-3xl font-bold text-text">Panel de administrador</h1>
+          <p className="text-text-muted">Resumen general de fiestas, invitados y estadísticas.</p>
+        </div>
+        <Button onClick={() => navigate('/host/create')} leftIcon={<Plus className="w-4 h-4" />}>
+          Nueva fiesta
+        </Button>
       </motion.div>
 
       {error && <div className="bg-error/10 border border-error text-error p-4 rounded-md">{error}</div>}
@@ -330,6 +338,9 @@ export const AdminDashboardPage: React.FC = () => {
                 partyMetrics={partyMetrics}
                 onArchive={handleArchiveParty}
                 onDelete={handleDeleteParty}
+                onEdit={(uuid) => navigate(`/admin/party/${uuid}/editor?p_uuid=${uuid}`)}
+                onView={(uuid) => navigate(`/admin/party/${uuid}?p_uuid=${uuid}`)}
+                onVenue={(uuid) => navigate(`/admin/party/${uuid}/venue?p_uuid=${uuid}`)}
                 ref={tableRef}
               />
             </CardBody>
@@ -366,6 +377,9 @@ interface AdminPartiesTableProps {
   partyMetrics: Record<string, { attendances: number; gifts: number }>;
   onArchive: (uuid: string, title: string) => void;
   onDelete: (uuid: string, title: string) => void;
+  onEdit: (uuid: string) => void;
+  onView: (uuid: string) => void;
+  onVenue: (uuid: string) => void;
 }
 
 export interface AdminPartiesTableHandle {
@@ -373,7 +387,7 @@ export interface AdminPartiesTableHandle {
 }
 
 const AdminPartiesTable = React.forwardRef<AdminPartiesTableHandle, AdminPartiesTableProps>(
-  ({ parties, pagination, onPaginationChange, partyMetrics, onArchive, onDelete }, ref) => {
+  ({ parties, pagination, onPaginationChange, partyMetrics, onArchive, onDelete, onEdit, onView, onVenue }, ref) => {
     const [sorting, setSorting] = useState<SortingState>([]);
 
     const columns = useMemo(
@@ -434,31 +448,22 @@ const AdminPartiesTable = React.forwardRef<AdminPartiesTableHandle, AdminParties
           id: 'actions',
           header: 'Acciones',
           cell: ({ row }) => (
-            <div className="flex gap-2 justify-end">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => window.open(`/party/${row.original.party_uuid}?p_uuid=${row.original.party_uuid}`, '_blank')}
-                title="Ver fiesta"
-              >
+            <div className="flex gap-1 justify-end">
+              <Button size="sm" variant="ghost" onClick={() => onView(row.original.party_uuid)} title="Ver detalle">
                 <Eye className="w-4 h-4" />
               </Button>
+              <Button size="sm" variant="ghost" onClick={() => onEdit(row.original.party_uuid)} title="Editar fiesta">
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => onVenue(row.original.party_uuid)} title="Plano del salón">
+                <LayoutDashboard className="w-4 h-4" />
+              </Button>
               {row.original.status !== 'archived' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onArchive(row.original.party_uuid, row.original.title)}
-                  title="Archivar"
-                >
+                <Button size="sm" variant="ghost" onClick={() => onArchive(row.original.party_uuid, row.original.title)} title="Archivar">
                   <Archive className="w-4 h-4" />
                 </Button>
               )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onDelete(row.original.party_uuid, row.original.title)}
-                title="Eliminar"
-              >
+              <Button size="sm" variant="ghost" onClick={() => onDelete(row.original.party_uuid, row.original.title)} title="Eliminar">
                 <Trash2 className="w-4 h-4 text-error" />
               </Button>
             </div>

@@ -5,7 +5,7 @@ const config: Config = {
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
   ],
-  darkMode: 'class', // Habilitar dark mode con clase
+  // dark mode is configured via @custom-variant in index.css (Tailwind v4)
   theme: {
     extend: {
       colors: {

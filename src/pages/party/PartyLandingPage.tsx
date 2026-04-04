@@ -149,8 +149,12 @@ export const PartyLandingPage: React.FC = () => {
     );
   }
 
+  const tc = party?.themeConfig;
+  const primaryColor = tc?.primaryColor || '#7C3AED';
+  const secondaryColor = tc?.secondaryColor || '#EC4899';
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-accent/5 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950/30">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-pink-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-purple-950/50">
       <div className="container-app py-10">
         <motion.div
           className="grid md:grid-cols-2 gap-8 items-center"
@@ -162,7 +166,7 @@ export const PartyLandingPage: React.FC = () => {
           <motion.div variants={itemVariants} className="space-y-6">
             {/* Tag */}
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-accent animate-pulse" />
+              <Sparkles className="w-5 h-5 animate-pulse" style={{ color: secondaryColor }} />
               <Badge variant="primary" className="text-xs">
                 Invitación especial
               </Badge>
@@ -170,35 +174,35 @@ export const PartyLandingPage: React.FC = () => {
 
             {/* Título Principal */}
             <div className="space-y-2">
-              <h1 className="text-5xl font-bold text-text">
+              <h1 className="text-5xl font-bold text-gray-900 dark:text-white">
                 {party?.title || '¡Te invitamos a celebrar!'}
               </h1>
-              <p className="text-xl text-accent font-semibold">
+              <p className="text-xl font-semibold" style={{ color: secondaryColor }}>
                 {party?.themeConfig?.customTexts?.welcomeSubtitle ||
                   'Será una fiesta inolvidable'}
               </p>
             </div>
 
             {/* Descripción */}
-            <p className="text-lg text-text-muted leading-relaxed">
+            <p className="text-lg text-gray-700 dark:text-gray-200 leading-relaxed">
               {party?.description ||
                 'Ingresa para confirmar tu asistencia, responder preguntas y elegir un regalo de la lista.'}
             </p>
 
             {/* Detalles de Fiesta */}
-            <div className="space-y-3 py-4 border-y border-border">
+            <div className="space-y-3 py-4 border-y border-gray-300 dark:border-zinc-600">
               {formattedDate && (
-                <div className="flex items-center gap-3 text-text">
-                  <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
-                  <span className="capitalize">{formattedDate}</span>
+                <div className="flex items-center gap-3 text-gray-900 dark:text-white">
+                  <Calendar className="w-5 h-5 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="capitalize font-medium">{formattedDate}</span>
                 </div>
               )}
               {party?.location && (
                 <>
                   {isMapUrl(party.location) ? (
                     <div className="space-y-2">
-                      <div className="flex items-center gap-3 text-text">
-                        <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+                      <div className="flex items-center gap-3 text-gray-900 dark:text-white">
+                        <MapPin className="w-5 h-5 flex-shrink-0" style={{ color: secondaryColor }} />
                         <span className="text-sm font-medium">Ubicación:</span>
                       </div>
                       {(() => {
@@ -209,7 +213,7 @@ export const PartyLandingPage: React.FC = () => {
                               href={mapLinks.googleMapsUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-lg"
                               style={{ backgroundColor: '#4285F4' }}
                             >
                               <span>🗺️</span>
@@ -219,7 +223,7 @@ export const PartyLandingPage: React.FC = () => {
                               href={mapLinks.wazeUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-md"
+                              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white transition-all hover:scale-105 hover:shadow-lg"
                               style={{ backgroundColor: '#33CCFF' }}
                             >
                               <span>🚗</span>
@@ -230,17 +234,17 @@ export const PartyLandingPage: React.FC = () => {
                       })()}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3 text-text">
-                      <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
-                      <span>{party.location}</span>
+                    <div className="flex items-center gap-3 text-gray-900 dark:text-white">
+                      <MapPin className="w-5 h-5 flex-shrink-0" style={{ color: secondaryColor }} />
+                      <span className="font-medium">{party.location}</span>
                     </div>
                   )}
                 </>
               )}
               {party?.giftList && party.giftList.length > 0 && (
-                <div className="flex items-center gap-3 text-text">
-                  <Gift className="w-5 h-5 text-secondary flex-shrink-0" />
-                  <span>{party.giftList.length} regalos para elegir</span>
+                <div className="flex items-center gap-3 text-gray-900 dark:text-white">
+                  <Gift className="w-5 h-5 flex-shrink-0" style={{ color: primaryColor }} />
+                  <span className="font-medium">{party.giftList.length} regalos para elegir</span>
                 </div>
               )}
             </div>
@@ -302,26 +306,42 @@ export const PartyLandingPage: React.FC = () => {
                       <Button
                         size="lg"
                         variant="primary"
-                        onClick={() => navigate(`/party/${p_uuid}/questions?p_uuid=${p_uuid}`)}
+                        onClick={() => navigate(`/party/${p_uuid}/home?p_uuid=${p_uuid}`)}
                         disabled={loading}
                         fullWidth
                         className="h-12 text-base font-semibold"
                       >
-                        {loading ? 'Cargando...' : '📝 Responder Preguntas'}
+                        {loading ? 'Cargando...' : '🎉 Ver mi invitación'}
                       </Button>
                     </motion.div>
-                    <motion.div variants={itemVariants} className="flex-1">
-                      <Button
-                        size="lg"
-                        variant="secondary"
-                        onClick={() => navigate(`/party/${p_uuid}/gifts?p_uuid=${p_uuid}`)}
-                        disabled={loading}
-                        fullWidth
-                        className="h-12 text-base font-semibold"
-                      >
-                        {loading ? 'Cargando...' : '🎁 Elegir Regalo'}
-                      </Button>
-                    </motion.div>
+                    {party?.questions && party.questions.length > 0 && (
+                      <motion.div variants={itemVariants} className="flex-1">
+                        <Button
+                          size="lg"
+                          variant="secondary"
+                          onClick={() => navigate(`/party/${p_uuid}/questions?p_uuid=${p_uuid}`)}
+                          disabled={loading}
+                          fullWidth
+                          className="h-12 text-base font-semibold"
+                        >
+                          {loading ? 'Cargando...' : '📝 Responder Preguntas'}
+                        </Button>
+                      </motion.div>
+                    )}
+                    {party?.giftList && party.giftList.length > 0 && (
+                      <motion.div variants={itemVariants} className="flex-1">
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          onClick={() => navigate(`/party/${p_uuid}/gifts?p_uuid=${p_uuid}`)}
+                          disabled={loading}
+                          fullWidth
+                          className="h-12 text-base font-semibold"
+                        >
+                          {loading ? 'Cargando...' : '🎁 Elegir Regalo'}
+                        </Button>
+                      </motion.div>
+                    )}
                   </>
                 )}
               </motion.div>
@@ -386,7 +406,7 @@ export const PartyLandingPage: React.FC = () => {
                 className="bg-primary/5 border border-primary/20 rounded-lg p-3"
               >
                 <p className="text-xs text-text-muted mb-1">Código de acceso a la fiesta</p>
-                <p className="text-sm font-mono font-bold text-primary cursor-pointer hover:text-primary/80 transition-colors"
+                <p className="text-sm font-mono font-bold cursor-pointer transition-colors" style={{ color: primaryColor }}
                   onClick={() => {
                     navigator.clipboard.writeText(p_uuid);
                     toast.success('Código copiado al portapapeles');
@@ -437,13 +457,13 @@ export const PartyLandingPage: React.FC = () => {
                   {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border">
                     <div className="text-center">
-                      <p className="text-lg font-bold text-primary">
+                      <p className="text-lg font-bold" style={{ color: primaryColor }}>
                         {party?.giftList?.length || 0}
                       </p>
                       <p className="text-xs text-text-muted">Regalos</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-lg font-bold text-accent">
+                      <p className="text-lg font-bold" style={{ color: secondaryColor }}>
                         {party?.questions?.length || 0}
                       </p>
                       <p className="text-xs text-text-muted">Preguntas</p>

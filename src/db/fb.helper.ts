@@ -2,24 +2,6 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query,
 import type {  DocumentData,  WhereFilterOp } from "firebase/firestore"
 import { db } from "./initialize";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-
-/**
- * @description Add a new item
- * @param collectionName 
- * @param data 
- * @returns 
- */
-export const adddItem = async (collectionName: string, data: DocumentData) => {
-    try {
-        const docRef = await addDoc(collection(db, collectionName), { data })
-        console.debug('Document written with ID: ', docRef.id);
-    } catch (error) {
-        console.warn("Error adding document: ", error)
-
-    }
-}
-
 /**
  * @description Set a new item
  * @param collectionName 
@@ -121,7 +103,6 @@ export const sendCustomEmail = async (dataForSend: email) => {
     const message: email = dataForSend;
     try {
         await addDoc(collection(db, 'mail'), message)
-        console.debug('Sending 📧 => ', { message });
     } catch (error) {
         console.warn("Error adding document: ", error)
 
@@ -134,7 +115,7 @@ export const footerMail =`
     <tr>
         <td>
         <a href="">
-        <p> © 2025 Good Dental </p>
+        <p> © 2025 PartyGifts App </p>
                 <img width="40%" src=''/>
             </a>
         </td>

@@ -2,6 +2,13 @@ import type { BaseEntity } from '../types/common';
 
 export type Role = "administrator" | "anfitrion" | "guest";
 
+export interface UserPreferences {
+  theme?: 'light' | 'dark' | 'system';
+  brandPrimary?: string;
+  brandSecondary?: string;
+  brandAccent?: string;
+}
+
 export interface IUser extends BaseEntity {
   email: string;
   password?: string;
@@ -11,6 +18,8 @@ export interface IUser extends BaseEntity {
   lastName: string;
   phone: string;
   role: Role;
+  isOwner?: boolean;
+  preferences?: UserPreferences;
   avatar?: string;
   photoURL?: string;
   // address: string;

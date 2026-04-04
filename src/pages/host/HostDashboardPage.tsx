@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardBody } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
@@ -27,11 +27,6 @@ export const HostDashboardPage: React.FC = () => {
   const [toDate, setToDate] = useState('');
   const [minGifts, setMinGifts] = useState<number | ''>('');
   const [minQuestions, setMinQuestions] = useState<number | ''>('');
-  const [useServerPagination, setUseServerPagination] = useState(false);
-  const [serverPageData, setServerPageData] = useState<Party[]>([]);
-  const [serverTotal, setServerTotal] = useState(0);
-  const [serverLoading, setServerLoading] = useState(false);
-  const tableRef = useRef<HostPartiesTableHandle>(null);
   const [metrics, setMetrics] = useState({ totalAttendances: 0, totalGiftsSelected: 0, avgQuestionsAnswered: 0 });
   const [partyMetrics, setPartyMetrics] = useState<Record<string, { attendances: number; gifts: number }>>({});
 
@@ -60,33 +55,30 @@ export const HostDashboardPage: React.FC = () => {
 
     const loadMetrics = async () => {
       try {
+        const allAssistances = await Promise.all(
+          parties.map((p) => PartyAssistanceService.getAssistancesByParty(p.party_uuid))
+        );
         let totalAttendances = 0;
         let totalGiftsSelected = 0;
         let totalQuestions = 0;
         let totalAnswers = 0;
+        const perParty: Record<string, { attendances: number; gifts: number }> = {};
 
-        for (const party of parties) {
-          const assistances = await PartyAssistanceService.getAssistancesByParty(party.party_uuid);
+        parties.forEach((party, idx) => {
+          const assistances = allAssistances[idx];
           const confirmed = assistances.filter((a) => a.attendanceConfirmed);
           totalAttendances += confirmed.length;
           totalGiftsSelected += confirmed.reduce((sum, a) => sum + (a.quantity || 1), 0);
           totalQuestions += (party.questions?.length || 0) * confirmed.length;
           totalAnswers += confirmed.reduce((sum, a) => sum + (a.answersToQuestions?.length || 0), 0);
-        }
-
-        const avgQuestionsAnswered = totalQuestions > 0 ? Math.round((totalAnswers / totalQuestions) * 100) : 0;
-        setMetrics({ totalAttendances, totalGiftsSelected, avgQuestionsAnswered });
-
-        // Build per-party metrics
-        const perParty: Record<string, { attendances: number; gifts: number }> = {};
-        for (const party of parties) {
-          const assistances = await PartyAssistanceService.getAssistancesByParty(party.party_uuid);
-          const confirmed = assistances.filter((a) => a.attendanceConfirmed);
           perParty[party.party_uuid] = {
             attendances: confirmed.length,
             gifts: confirmed.reduce((sum, a) => sum + (a.quantity || 1), 0),
           };
-        }
+        });
+
+        const avgQuestionsAnswered = totalQuestions > 0 ? Math.round((totalAnswers / totalQuestions) * 100) : 0;
+        setMetrics({ totalAttendances, totalGiftsSelected, avgQuestionsAnswered });
         setPartyMetrics(perParty);
       } catch (err) {
         console.error('Error loading metrics:', err);
@@ -126,20 +118,6 @@ export const HostDashboardPage: React.FC = () => {
         return true;
       });
   }, [fromDate, minGifts, minQuestions, parties, searchTerm, statusFilter, toDate]);
-
-  useEffect(() => {
-    if (!useServerPagination) return;
-    setServerLoading(true);
-    const start = pagination.pageIndex * pagination.pageSize;
-    const end = start + pagination.pageSize;
-    const timer = setTimeout(() => {
-      setServerPageData(filteredParties.slice(start, end));
-      setServerTotal(filteredParties.length);
-      setServerLoading(false);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [filteredParties, pagination.pageIndex, pagination.pageSize, useServerPagination]);
 
   return (
     <div className="space-y-6">
@@ -258,18 +236,6 @@ export const HostDashboardPage: React.FC = () => {
             <h2 className="text-lg font-bold text-text">Listado de fiestas</h2>
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <p className="text-text-muted text-sm">Resumen de tus fiestas con acciones rápidas</p>
-              <div className="flex items-center gap-2 text-sm text-text-muted">
-                <input
-                  id="serverPagination"
-                  type="checkbox"
-                  checked={useServerPagination}
-                  onChange={(e) => {
-                    setUseServerPagination(e.target.checked);
-                    setPagination({ pageIndex: 0, pageSize: pagination.pageSize });
-                  }}
-                />
-                <label htmlFor="serverPagination">Simular paginación servidor</label>
-              </div>
             </div>
           </CardHeader>
           <CardBody>
@@ -364,25 +330,16 @@ export const HostDashboardPage: React.FC = () => {
               >
                 Exportar métricas
               </Button>
-              <Button variant="outline" onClick={() => tableRef.current?.exportCSV()}>
-                Exportar tabla
-              </Button>
             </div>
-            {useServerPagination && serverLoading ? (
-              <div className="text-center py-8 text-text-muted">Cargando más fiestas...</div>
-            ) : (
-              <HostPartiesTable
-                parties={useServerPagination ? serverPageData : filteredParties}
-                onView={(uuid) => navigate(`/host/party/${uuid}?p_uuid=${uuid}`)}
-                onEdit={(uuid) => navigate(`/host/party/${uuid}/editor?p_uuid=${uuid}`)}
-                pagination={pagination}
-                onPaginationChange={setPagination}
-                totalCount={useServerPagination ? serverTotal : filteredParties.length}
-                manualPagination={useServerPagination}
-                partyMetrics={partyMetrics}
-                ref={tableRef}
-              />
-            )}
+            <HostPartiesTable
+              parties={filteredParties}
+              onView={(uuid) => navigate(`/host/party/${uuid}?p_uuid=${uuid}`)}
+              onEdit={(uuid) => navigate(`/host/party/${uuid}/editor?p_uuid=${uuid}`)}
+              pagination={pagination}
+              onPaginationChange={setPagination}
+              totalCount={filteredParties.length}
+              partyMetrics={partyMetrics}
+            />
           </CardBody>
         </Card>
       )}
@@ -400,16 +357,12 @@ interface HostPartiesTableProps {
   pagination: PaginationState;
   onPaginationChange: (updater: PaginationState | ((prev: PaginationState) => PaginationState)) => void;
   totalCount: number;
-  manualPagination?: boolean;
   partyMetrics: Record<string, { attendances: number; gifts: number }>;
 }
 
-export interface HostPartiesTableHandle {
-  exportCSV: () => void;
-}
-
-const HostPartiesTable = React.forwardRef<HostPartiesTableHandle, HostPartiesTableProps>(
-  ({ parties, onView, onEdit, pagination, onPaginationChange, totalCount, manualPagination = false, partyMetrics }, ref) => {
+const HostPartiesTable: React.FC<HostPartiesTableProps> = (
+  { parties, onView, onEdit, pagination, onPaginationChange, totalCount, partyMetrics }
+) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const columns = useMemo(
@@ -491,7 +444,7 @@ const HostPartiesTable = React.forwardRef<HostPartiesTableHandle, HostPartiesTab
         ),
       }),
     ],
-    [onEdit, onView]
+    [onEdit, onView, partyMetrics]
   );
 
   const table = useReactTable({
@@ -506,40 +459,8 @@ const HostPartiesTable = React.forwardRef<HostPartiesTableHandle, HostPartiesTab
     },
     onSortingChange: setSorting,
     onPaginationChange,
-    manualPagination,
-    pageCount: manualPagination ? Math.ceil(totalCount / pagination.pageSize) || 1 : undefined,
+    pageCount: undefined,
   });
-
-  React.useImperativeHandle(ref, () => ({
-    exportCSV: () => {
-      const rows = table.getSortedRowModel().rows;
-      const headers = ['Título', 'Estado', 'Fecha', 'Regalos', 'Preguntas'];
-      const toLabel = (s: Party['status']) =>
-        s === 'published' ? 'Publicada' : s === 'draft' ? 'Borrador' : 'Archivada';
-      const csv = [
-        headers.join(','),
-        ...rows.map((r) => {
-          const p = r.original;
-          const cols = [
-            p.title,
-            toLabel(p.status),
-            p.date ? new Date(p.date).toLocaleDateString('es-ES') : '',
-            String(p.giftList?.length || 0),
-            String(p.questions?.length || 0),
-          ];
-          return cols.map((c) => `"${(c || '').replace(/"/g, '""')}"`).join(',');
-        }),
-      ].join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'fiestas.csv';
-      link.click();
-      URL.revokeObjectURL(url);
-    },
-  }));
 
   return (
     <div className="overflow-x-auto">
@@ -604,4 +525,4 @@ const HostPartiesTable = React.forwardRef<HostPartiesTableHandle, HostPartiesTab
       </div>
     </div>
   );
-});
+};

@@ -5,12 +5,14 @@ import { SkeletonLoader } from '../../components/ui/skeleton-loader';
 import { UsersService } from '../../services/users.service';
 import type { IUser, Role } from '../../interfaces/users.interface';
 import { useNotificationStore } from '../../stores/notification.store';
+import { useAuthStore } from '../../stores/auth.store';
 
 export const AdminUsersPage: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { addNotification } = useNotificationStore();
+  const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
     loadUsers();
@@ -52,7 +54,14 @@ export const AdminUsersPage: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter((user) =>
+  const isCurrentUserAdmin = currentUser?.role === 'administrator';
+  const isCurrentUserOwner = currentUser?.isOwner === true;
+
+  const visibleUsers = isCurrentUserAdmin
+    ? users
+    : users.filter((u) => u.role !== 'administrator');
+
+  const filteredUsers = visibleUsers.filter((user) =>
     user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -138,9 +147,16 @@ export const AdminUsersPage: React.FC = () => {
                         {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-text dark:text-gray-100">
-                          {user.name || 'Sin nombre'}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-semibold text-text dark:text-gray-100">
+                            {user.name || 'Sin nombre'}
+                          </h3>
+                          {isCurrentUserOwner && user.isOwner && (
+                            <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">
+                              Superadmin
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-text-muted dark:text-gray-400">{user.email}</p>
                       </div>
                     </div>
@@ -174,7 +190,9 @@ export const AdminUsersPage: React.FC = () => {
                       >
                         <option value="guest">Invitado</option>
                         <option value="anfitrion">Anfitrión</option>
-                        <option value="administrator">Administrador</option>
+                        {isCurrentUserAdmin && (
+                          <option value="administrator">Administrador</option>
+                        )}
                       </select>
                     </div>
                   </div>
@@ -214,19 +232,19 @@ export const AdminUsersPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-primary dark:text-purple-400">
-                {users.length}
+                {visibleUsers.length}
               </p>
               <p className="text-sm text-text-muted dark:text-gray-400">Total usuarios</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {users.filter((u) => u.role === 'anfitrion').length}
+                {visibleUsers.filter((u) => u.role === 'anfitrion').length}
               </p>
               <p className="text-sm text-text-muted dark:text-gray-400">Anfitriones</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {users.filter((u) => u.role === 'administrator').length}
+                {visibleUsers.filter((u) => u.role === 'administrator').length}
               </p>
               <p className="text-sm text-text-muted dark:text-gray-400">Administradores</p>
             </div>

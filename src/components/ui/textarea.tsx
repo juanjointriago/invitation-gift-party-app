@@ -23,9 +23,9 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className={fullWidth ? 'w-full' : ''}>
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             {label}
-            {props.required && <span className="text-red-600 dark:text-red-400 ml-1">*</span>}
+            {props.required && <span className="text-red-600 ml-1">*</span>}
           </label>
         )}
         <textarea
@@ -36,31 +36,31 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             px-4
             py-2
             border
-            border-gray-300 dark:border-gray-600
+            border-gray-300 dark:border-zinc-600
             rounded-md
             font-base
             text-base
             text-gray-900 dark:text-gray-100
-            bg-white dark:bg-gray-800
+            bg-white dark:bg-zinc-800
             transition-all
             duration-200
             focus:outline-none
             focus:ring-2
-            focus:ring-purple-500/50 dark:focus:ring-purple-400/50
-            focus:border-purple-500 dark:focus:border-purple-400
+            focus:ring-purple-500/50
+            focus:border-purple-500
             disabled:opacity-50
             disabled:cursor-not-allowed
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
+            placeholder:text-gray-400
             resize-vertical
             min-h-[100px]
-            ${error ? 'border-red-600 dark:border-red-400 focus:ring-red-500/50' : ''}
+            ${error ? 'border-red-600 focus:ring-red-500/50' : ''}
             ${className || ''}
           `}
           {...props}
         />
-        {error && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error}</p>}
+        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
         {helperText && !error && (
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{helperText}</p>
+          <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">{helperText}</p>
         )}
       </div>
     );

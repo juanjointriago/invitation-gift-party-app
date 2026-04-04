@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardBody } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
-import { Eye, Trash2, Archive } from 'lucide-react';
+import { Eye, Trash2, Archive, Pencil, Plus, LayoutDashboard } from 'lucide-react';
 import { useNotificationStore } from '../../stores/notification.store';
 import { PartyService } from '../../services/party.service';
 import type { Party } from '../../types/party';
@@ -108,6 +108,9 @@ export const AdminPartiesPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-text dark:text-gray-100">Gestión de Fiestas</h1>
           <p className="text-text-muted dark:text-gray-400 mt-1">Administra todas las fiestas del sistema</p>
         </div>
+        <Button onClick={() => navigate('/host/create')} leftIcon={<Plus className="w-4 h-4" />}>
+          Nueva fiesta
+        </Button>
       </div>
 
       {/* Filtros */}
@@ -144,9 +147,9 @@ export const AdminPartiesPage: React.FC = () => {
                   : `No hay fiestas ${filter}`}
               </p>
               {filter === 'all' && (
-                <p className="text-sm text-text-muted dark:text-gray-500 mb-6">
-                  Los anfitriones pueden crear sus fiestas desde el dashboard de host
-                </p>
+                <Button onClick={() => navigate('/host/create')} leftIcon={<Plus className="w-4 h-4" />} className="mt-2">
+                  Crear primera fiesta
+                </Button>
               )}
             </div>
           </CardBody>
@@ -185,11 +188,29 @@ export const AdminPartiesPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigate(`/host/party/${party.party_uuid}`)}
+                        onClick={() => navigate(`/admin/party/${party.party_uuid}?p_uuid=${party.party_uuid}`)}
                         className="flex items-center gap-2"
                       >
                         <Eye className="h-4 w-4" />
                         <span className="hidden sm:inline">Ver</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/admin/party/${party.party_uuid}/editor?p_uuid=${party.party_uuid}`)}
+                        className="flex items-center gap-2"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="hidden sm:inline">Editar</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/admin/party/${party.party_uuid}/venue?p_uuid=${party.party_uuid}`)}
+                        className="flex items-center gap-2"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        <span className="hidden sm:inline">Plano</span>
                       </Button>
                       {party.status !== 'archived' && (
                         <Button

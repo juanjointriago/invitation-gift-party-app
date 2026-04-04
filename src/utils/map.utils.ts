@@ -26,31 +26,43 @@ export function extractCoordinates(url: string): { lat: string; lng: string } | 
   }
 }
 
+const PLAIN_COORD_RE = /^(-?\d{1,3}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)$/;
+
 /**
- * Verifica si un string es una URL de mapa
+ * Verifica si un string es una URL de mapa o coordenadas lat,lng
  */
 export function isMapUrl(location: string): boolean {
-  return (
+  if (
     location.includes('google.com/maps') ||
     location.includes('goo.gl/maps') ||
     location.includes('maps.app.goo.gl')
-  );
+  ) return true;
+  return PLAIN_COORD_RE.test(location.trim());
 }
 
 /**
- * Genera URLs para Waze y Google Maps
+ * Genera URLs para Waze y Google Maps.
+ * Soporta URLs de Google Maps (con coordenadas) y formato "lat,lng".
  */
 export function generateMapLinks(location: string) {
+  // 1. Try extracting from a full Google Maps URL
   const coords = extractCoordinates(location);
-
   if (coords) {
-    // Waze: https://waze.com/ul?ll=lat,lng&navigate=yes
-    const wazeUrl = `https://waze.com/ul?ll=${coords.lat},${coords.lng}&navigate=yes`;
+    return {
+      wazeUrl: `https://waze.com/ul?ll=${coords.lat},${coords.lng}&navigate=yes`,
+      googleMapsUrl: `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=17&hl=es`,
+      coords,
+    };
+  }
 
-    // Google Maps: https://www.google.com/maps?q=lat,lng
-    const googleMapsUrl = `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=17&hl=es`;
-
-    return { wazeUrl, googleMapsUrl, coords };
+  // 2. Try plain "lat,lng" format
+  const m = location.trim().match(PLAIN_COORD_RE);
+  if (m) {
+    return {
+      wazeUrl: `https://waze.com/ul?ll=${m[1]},${m[2]}&navigate=yes`,
+      googleMapsUrl: `https://www.google.com/maps?q=${m[1]},${m[2]}&z=17&hl=es`,
+      coords: { lat: m[1], lng: m[2] },
+    };
   }
 
   return null;

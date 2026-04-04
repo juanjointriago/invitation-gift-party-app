@@ -102,7 +102,6 @@ export class PartyService {
       const cleanedParty = this.cleanUndefined(newParty);
 
       await setItem(COLLECTION_PARTIES, cleanedParty);
-      console.debug('Party created:', partyUuid);
       return newParty;
     } catch (error) {
       console.error('Error creating party:', error);
@@ -125,7 +124,6 @@ export class PartyService {
         id: partyUuid,
         ...cleanedUpdates,
       });
-      console.debug('Party updated:', partyUuid);
     } catch (error) {
       console.error('Error updating party:', error);
       throw error;
@@ -138,7 +136,6 @@ export class PartyService {
   static async deleteParty(partyUuid: string): Promise<void> {
     try {
       await deleteItem(COLLECTION_PARTIES, partyUuid);
-      console.debug('Party deleted:', partyUuid);
     } catch (error) {
       console.error('Error deleting party:', error);
       throw error;
@@ -191,7 +188,6 @@ export class PartyService {
         giftList: updatedGiftList,
       });
 
-      console.debug('Gift quantity decremented:', giftId);
     } catch (error) {
       console.error('Error decrementing gift quantity:', error);
       throw error;

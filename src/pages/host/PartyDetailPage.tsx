@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, useMatch } from 'react-router-dom';
 import { Card, CardHeader, CardBody } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -37,6 +37,7 @@ export const PartyDetailPage: React.FC = () => {
   const { partyUuid } = useParams();
   const [searchParams] = useSearchParams();
   const p_uuid = searchParams.get('p_uuid') || partyUuid || '';
+  const isAdminContext = !!useMatch('/admin/*');
 
   const { fullParty, error: partyError } = usePartyLoader(p_uuid);
   const [assistances, setAssistances] = useState<PartyAssistanceGift[]>([]);
@@ -59,13 +60,8 @@ export const PartyDetailPage: React.FC = () => {
         
         // Cargar información de usuarios desde el store
         const userIds = [...new Set(data.map(a => a.guest_user_id))];
-        console.log('🔍 User IDs to load:', userIds);
         if (userIds.length > 0) {
           const users = await getUsersByIds(userIds);
-          console.log('👥 Users loaded:', users.size, 'users');
-          users.forEach((user, id) => {
-            console.log(`  - ${id}: ${user.name} ${user.lastName}`);
-          });
           setUsersMap(users);
         }
       } catch (err) {
@@ -121,7 +117,6 @@ export const PartyDetailPage: React.FC = () => {
         cell: (info) => {
           const userId = info.getValue() as string;
           const user = usersMap.get(userId);
-          console.log(`🎯 Rendering user ${userId}:`, user ? `${user.name} ${user.lastName}` : 'NOT FOUND');
           return (
             <div className="flex flex-col">
               {user ? (
@@ -237,15 +232,21 @@ export const PartyDetailPage: React.FC = () => {
         </div>
         <div className="flex gap-3">
           <PartyShareButton partyUuid={p_uuid} partyTitle={fullParty?.title} />
-          {fullParty?.questions && fullParty.questions.length > 0 && (
+          {fullParty?.questions && fullParty.questions.length > 0 && !isAdminContext && (
             <Button variant="outline" onClick={() => navigate(`/host/party/${p_uuid}/responses?p_uuid=${p_uuid}`)}>
               📊 Ver Respuestas
             </Button>
           )}
-          <Button variant="outline" onClick={() => navigate(`/host/party/${p_uuid}/editor?p_uuid=${p_uuid}`)}>
+          <Button variant="outline" onClick={() => navigate(`/${isAdminContext ? 'admin' : 'host'}/party/${p_uuid}/photos?p_uuid=${p_uuid}`)}>
+            📸 Fotos del evento
+          </Button>
+          <Button variant="outline" onClick={() => navigate(`/${isAdminContext ? 'admin' : 'host'}/party/${p_uuid}/venue?p_uuid=${p_uuid}`)}>
+            🏛️ Plano del salón
+          </Button>
+          <Button variant="outline" onClick={() => navigate(`/${isAdminContext ? 'admin' : 'host'}/party/${p_uuid}/editor?p_uuid=${p_uuid}`)}>
             Editar fiesta
           </Button>
-          <Button onClick={() => navigate('/host')}>Volver</Button>
+          <Button onClick={() => navigate(-1)}>Volver</Button>
         </div>
       </motion.div>
 
@@ -355,6 +356,76 @@ export const PartyDetailPage: React.FC = () => {
           )}
         </CardBody>
       </Card>
+
+      {/* Configured Gift List */}
+      {fullParty?.giftList && fullParty.giftList.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Lista de regalos configurada</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{fullParty.giftList.length} regalos · haz clic en Editar fiesta para modificarlos</p>
+          </CardHeader>
+          <CardBody>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {fullParty.giftList.map((gift) => {
+                const selected = giftCounts[gift.id] || 0;
+                const remaining = gift.remainingQuantity ?? gift.maxQuantity;
+                return (
+                  <div key={gift.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700/40">
+                    {gift.imageUrl ? (
+                      <img src={gift.imageUrl} alt={gift.name} className="w-12 h-12 rounded-md object-cover shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-md bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+                        <Gift className="w-5 h-5 text-purple-500" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{gift.name}</p>
+                      {gift.category && <p className="text-xs text-gray-500 dark:text-gray-400">{gift.category}</p>}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{remaining}/{gift.maxQuantity} disponibles</span>
+                        {selected > 0 && <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">· {selected} elegidos</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Configured Questions */}
+      {fullParty?.questions && fullParty.questions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Preguntas configuradas</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{fullParty.questions.length} preguntas · los invitados las responden en el flujo de RSVP</p>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-3">
+              {fullParty.questions.map((q, idx) => {
+                const typeLabel = q.type === 'single-choice' ? 'Opción única' : q.type === 'multi-choice' ? 'Opción múltiple' : 'Texto libre';
+                const typeColor = q.type === 'text' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
+                return (
+                  <div key={q.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700/40">
+                    <span className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{idx + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{q.question}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${typeColor}`}>{typeLabel}</span>
+                        {q.required && <span className="text-xs text-red-500 dark:text-red-400">Obligatoria</span>}
+                        {q.options && q.options.length > 0 && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{q.options.join(' · ')}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Attendees Table */}
       <Card>

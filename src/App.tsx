@@ -11,22 +11,30 @@ import { SyncStatusIndicator } from './components/SyncStatusIndicator';
 const router = createBrowserRouter(routeConfig);
 
 function App() {
-  const { initializeAuthListener, loading } = useAuthStore();
-  const { initializeTheme } = useThemeStore();
+  const { initializeAuthListener, loading, user } = useAuthStore();
+  const { initializeTheme, setTheme, applyUserBrandColors } = useThemeStore();
 
-  // Inicializar tema
   useEffect(() => {
     initializeTheme();
   }, [initializeTheme]);
 
-  // Inicializar listener de autenticación al montar el componente
+  // When a user logs in and has saved preferences, apply them
+  useEffect(() => {
+    if (!user) return;
+    if (user.preferences?.theme) setTheme(user.preferences.theme);
+    if (user.role === 'administrator' || user.role === 'anfitrion') {
+      applyUserBrandColors({
+        primary: user.preferences?.brandPrimary,
+        secondary: user.preferences?.brandSecondary,
+        accent: user.preferences?.brandAccent,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // only on user change (login/logout)
+
   useEffect(() => {
     const unsubscribe = initializeAuthListener();
-
-    // Limpiar suscripción al desmontar
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
+    return () => { if (unsubscribe) unsubscribe(); };
   }, [initializeAuthListener]);
 
   // Mostrar pantalla de carga mientras se verifica la autenticación

@@ -32,6 +32,10 @@ const AdminPartiesPage = lazy(() => import('../pages/admin/AdminPartiesPage').th
 const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })));
 const ProfilePage = lazy(() => import('../pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const PublicInvitation = lazy(() => import('../pages/public/PublicInvitation').then((m) => ({ default: m.PublicInvitation })));
+const VenueEditorPage = lazy(() => import('../pages/host/VenueEditorPage').then((m) => ({ default: m.VenueEditorPage })));
+const SeatingPage = lazy(() => import('../pages/party/SeatingPage').then((m) => ({ default: m.SeatingPage })));
+const PartyPhotosPage = lazy(() => import('../pages/party/PartyPhotosPage').then((m) => ({ default: m.PartyPhotosPage })));
+const PartyPhotosAdminPage = lazy(() => import('../pages/host/PartyPhotosAdminPage').then((m) => ({ default: m.PartyPhotosAdminPage })));
 
 const fallback = (
   <div className="py-10 text-center text-sm text-text-muted">Cargando…</div>
@@ -98,6 +102,18 @@ export const routeConfig: RouteObject[] = [
         path: 'gifts',
         element: withSuspense(<PartyGiftsPage />),
       },
+      {
+        path: 'seating',
+        element: withSuspense(<SeatingPage />),
+      },
+      {
+        path: 'photos',
+        element: (
+          <ProtectedRoute>
+            {withSuspense(<PartyPhotosPage />)}
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 
@@ -135,6 +151,22 @@ export const routeConfig: RouteObject[] = [
         element: (
           <ProtectedRoute requiredRoles={['anfitrion']}>
             {withSuspense(<PartyResponsesPage />)}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'party/:partyUuid/venue',
+        element: (
+          <ProtectedRoute requiredRoles={['anfitrion']}>
+            {withSuspense(<VenueEditorPage />)}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'party/:partyUuid/photos',
+        element: (
+          <ProtectedRoute requiredRoles={['anfitrion']}>
+            {withSuspense(<PartyPhotosAdminPage />)}
           </ProtectedRoute>
         ),
       },
@@ -180,7 +212,35 @@ export const routeConfig: RouteObject[] = [
       },
       {
         path: 'party/:partyUuid',
-        // element: <AdminPartyDetailPage />,
+        element: (
+          <ProtectedRoute requiredRoles={['administrator']}>
+            {withSuspense(<PartyDetailPage />)}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'party/:partyUuid/editor',
+        element: (
+          <ProtectedRoute requiredRoles={['administrator']}>
+            {withSuspense(<PartyEditorPage />)}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'party/:partyUuid/venue',
+        element: (
+          <ProtectedRoute requiredRoles={['administrator']}>
+            {withSuspense(<VenueEditorPage />)}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'party/:partyUuid/photos',
+        element: (
+          <ProtectedRoute requiredRoles={['administrator']}>
+            {withSuspense(<PartyPhotosAdminPage />)}
+          </ProtectedRoute>
+        ),
       },
     ],
   },

@@ -115,20 +115,21 @@ export class AuthService {
   };
   /**
    * @description Login with Google and set on user collection if not exists if exists continue
-   * @param action
    * @returns
    */
   static googleSignUpLogin = async (): Promise<{ user?: IUser; isAuthenticated:boolean; message: string }> => {
     const auth = getAuth();
     const googleAuthProvider = new GoogleAuthProvider();
     googleAuthProvider.setCustomParameters({
-      prompt: "select_account ",
+      prompt: "select_account",
     });
 
     try {
       const { user } = await signInWithPopup(auth, googleAuthProvider);
       const { uid, email, displayName, photoURL } = user;
       const firebaseUser = await getItemById<IUser>(COLLECTION_USERS, uid);
+      
+      // Si el usuario no existe en Firestore, crearlo automáticamente como guest activo
       if (!firebaseUser?.id) {
         const dataUser:IUser = {
           id: uid,
@@ -136,28 +137,38 @@ export class AuthService {
           lastName: "",
           email: email || '',
           role: "guest",
-          password: firebaseUser.password || '',    
           photoURL: photoURL || '',
           phone: "",
-          birthDate: 0,
           city: "",
           country: "",
-          isActive: false,
+          isActive: true, // Activar automáticamente usuarios de Google
           createdAt: Date.now(),
           updatedAt: Date.now(),
+          lastLogin: Date.now(),
         };
         await setItem(COLLECTION_USERS, dataUser);
-        await signOut(auth);
-        return { isAuthenticated: true, message: 'Registro completo: Su cuenta se encuentra en proceso de activación' };
+        return { isAuthenticated: true, user: dataUser, message: `¡Bienvenido ${dataUser.name}!` };
       }
+      
+      // Si existe pero no está activo
       if (!firebaseUser.isActive) {
         await signOut(auth);
         return { isAuthenticated: false, message: 'Su usuario está en proceso de aprobación' };
       }
-      return { isAuthenticated: true, user: firebaseUser, message: `Bienvenido ${firebaseUser.name}` };
+      
+      // Usuario existe y está activo - actualizar último login
+      const updatedUser = { ...firebaseUser, lastLogin: Date.now() };
+      await setItem(COLLECTION_USERS, updatedUser);
+      return { isAuthenticated: true, user: updatedUser, message: `Bienvenido ${firebaseUser.name}` };
     } catch (error: any) {
-      console.debug({ error });
-      return { isAuthenticated: false, message: `Error al iniciar sesión con GOOGLE: ${error.message}` };
+      console.error('[AUTH] Error en Google Sign-In:', error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        return { isAuthenticated: false, message: 'Inicio de sesión cancelado' };
+      }
+      if (error.code === 'auth/popup-blocked') {
+        return { isAuthenticated: false, message: 'Popup bloqueado. Por favor, permite las ventanas emergentes.' };
+      }
+      return { isAuthenticated: false, message: `Error al iniciar sesión con Google: ${error.message}` };
     }
   };
 

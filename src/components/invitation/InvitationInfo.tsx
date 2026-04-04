@@ -63,7 +63,7 @@ export function InvitationInfo({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: '-100px' }}
-      className="py-16 px-6 md:px-12 lg:px-24 bg-white dark:bg-gray-900"
+      className="py-16 px-6 md:px-12 lg:px-24 bg-white dark:bg-zinc-900"
     >
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Welcome titles */}
@@ -75,7 +75,7 @@ export function InvitationInfo({
             {welcomeTitle}
           </h2>
           <p 
-            className="text-xl md:text-2xl font-light dark:text-gray-300"
+            className="text-xl md:text-2xl font-medium dark:text-gray-200"
             style={{ color: secondaryColor }}
           >
             {welcomeSubtitle}
@@ -85,7 +85,7 @@ export function InvitationInfo({
         {/* Description */}
         {description && (
           <motion.div variants={itemVariants} className="text-center">
-            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+            <p className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed font-medium">
               {description}
             </p>
           </motion.div>

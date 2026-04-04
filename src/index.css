@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: use class-based dark mode (.dark on <html>) instead of media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #8b5cf6;
   --color-secondary: #a855f7;
@@ -12,16 +15,16 @@
 
 :root {
   /* Paleta Global (Branding base de la app) */
-  --color-primary: #9333ea;
-  --color-secondary: #a855f7;
-  --color-accent: #ec4899;
-  --color-background: #f9fafb;
+  --color-primary: #7c3aed;
+  --color-secondary: #9333ea;
+  --color-accent: #db2777;
+  --color-background: #ffffff;
 
   /* Colores Semantic */
-  --color-text: #111827;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-border-light: #f3f4f6;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-border: #cbd5e1;
+  --color-border-light: #e2e8f0;
 
   /* Estados */
   --color-success: #10b981;
@@ -72,21 +75,21 @@
    ============================================ */
 
 .dark {
-  /* Colores de texto en modo oscuro */
-  --color-text: #fafafa;
-  --color-text-muted: #a1a1aa;
+  /* Colores de texto en modo oscuro - Mayor contraste */
+  --color-text: #ffffff;
+  --color-text-muted: #d4d4d8;
   
-  /* Colores de fondo en modo oscuro */
-  --color-background: #27272a;
+  /* Colores de fondo en modo oscuro - Más oscuro para mejor contraste */
+  --color-background: #18181b;
   
-  /* Bordes en modo oscuro */
-  --color-border: #52525b;
-  --color-border-light: #3f3f46;
+  /* Bordes en modo oscuro - Más visibles */
+  --color-border: #71717a;
+  --color-border-light: #52525b;
   
-  /* Ajustar primary/secondary/accent para mejor contraste */
-  --color-primary: #a855f7;
-  --color-secondary: #c084fc;
-  --color-accent: #f472b6;
+  /* Ajustar primary/secondary/accent para mejor contraste y brillo */
+  --color-primary: #c084fc;
+  --color-secondary: #d8b4fe;
+  --color-accent: #f9a8d4;
   
   /* Sombras más sutiles en dark mode */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);

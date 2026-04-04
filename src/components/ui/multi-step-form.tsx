@@ -92,8 +92,8 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
                     animate={{
                       backgroundColor:
                         index <= currentStep
-                          ? 'rgb(18, 52, 86)' // primary
-                          : 'rgb(230, 230, 230)', // gray
+                          ? 'rgb(147, 51, 234)' // purple-600
+                          : 'rgb(229, 231, 235)', // gray-200
                     }}
                     className={`
                       w-10
@@ -109,7 +109,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
                       ${
                         index <= currentStep
                           ? 'text-white shadow-lg'
-                          : 'text-text-muted border-2 border-border'
+                          : 'text-gray-600 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600'
                       }
                     `}
                   >
@@ -130,8 +130,8 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
                       max-w-[80px]
                       ${
                         index <= currentStep
-                          ? 'text-primary'
-                          : 'text-text-muted'
+                          ? 'text-purple-600 dark:text-purple-400'
+                          : 'text-gray-500 dark:text-gray-400'
                       }
                     `}
                   >
@@ -146,8 +146,8 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
                     animate={{
                       backgroundColor:
                         index < currentStep
-                          ? 'rgb(18, 52, 86)' // primary
-                          : 'rgb(230, 230, 230)', // gray
+                          ? 'rgb(147, 51, 234)' // purple-600
+                          : 'rgb(229, 231, 235)', // gray-200
                     }}
                     className="flex-1 h-1 mx-2 my-5 transition-colors duration-300"
                   />
@@ -159,7 +159,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
       )}
 
       {/* Step Content */}
-      <div className="bg-white rounded-lg border border-border p-8 min-h-96">
+      <div className="bg-white dark:bg-zinc-800 rounded-lg border border-gray-300 dark:border-zinc-600 p-8 min-h-96">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -170,11 +170,11 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
           >
             {/* Step Header */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-text mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {steps[currentStep].title}
               </h2>
               {steps[currentStep].description && (
-                <p className="text-text-muted">
+                <p className="text-gray-600 dark:text-gray-300">
                   {steps[currentStep].description}
                 </p>
               )}
